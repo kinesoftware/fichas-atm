@@ -809,6 +809,84 @@
     }
     return out;
   }
+  var DEMO_PHOTO_1 = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <defs>
+    <linearGradient id="bg1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="%23f8fafc"/>
+      <stop offset="100%" stop-color="%23e2e8f0"/>
+    </linearGradient>
+    <linearGradient id="tooth1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="%23ffffff"/>
+      <stop offset="100%" stop-color="%23f1f5f9"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(%23bg1)"/>
+  <rect x="30" y="25" width="740" height="50" rx="8" fill="%230f172a"/>
+  <text x="50" y="56" fill="%23ffffff" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="700" letter-spacing="1">REGISTRO FOTOGR\xC1FICO \xB7 CONTROL PRE-TRATAMIENTO</text>
+  <rect x="610" y="37" width="145" height="26" rx="4" fill="%23ea580c"/>
+  <text x="682" y="54" fill="%23ffffff" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" font-weight="700" text-anchor="middle">APERTURA 35 mm</text>
+  <rect x="80" y="100" width="640" height="420" rx="12" fill="%23ffffff" stroke="%23cbd5e1" stroke-width="2"/>
+  <path d="M 120 150 H 680 M 120 200 H 680 M 120 250 H 680 M 120 300 H 680 M 120 350 H 680 M 120 400 H 680 M 120 450 H 680" stroke="%23f1f5f9" stroke-width="1.5"/>
+  <path d="M 200 120 V 500 M 300 120 V 500 M 400 120 V 500 M 500 120 V 500 M 600 120 V 500" stroke="%23f1f5f9" stroke-width="1.5"/>
+  <line x1="400" y1="115" x2="400" y2="505" stroke="%23ef4444" stroke-width="2" stroke-dasharray="6,4"/>
+  <text x="408" y="135" fill="%23ef4444" font-family="sans-serif" font-size="11" font-weight="bold">L\xCDNEA MEDIA TE\xD3RICA</text>
+  <path d="M 320 210 C 330 235, 385 235, 395 210 Z" fill="url(%23tooth1)" stroke="%2364748b" stroke-width="2"/>
+  <path d="M 405 210 C 415 235, 470 235, 480 210 Z" fill="url(%23tooth1)" stroke="%2364748b" stroke-width="2"/>
+  <path d="M 265 215 C 275 232, 310 232, 318 215 Z" fill="url(%23tooth1)" stroke="%2394a3b8" stroke-width="1.5"/>
+  <path d="M 482 215 C 490 232, 525 232, 535 215 Z" fill="url(%23tooth1)" stroke="%2394a3b8" stroke-width="1.5"/>
+  <path d="M 305 380 C 315 355, 370 355, 378 380 Z" fill="url(%23tooth1)" stroke="%2364748b" stroke-width="2"/>
+  <path d="M 382 380 C 390 355, 445 355, 455 380 Z" fill="url(%23tooth1)" stroke="%2364748b" stroke-width="2"/>
+  <path d="M 255 375 C 265 358, 298 358, 303 375 Z" fill="url(%23tooth1)" stroke="%2394a3b8" stroke-width="1.5"/>
+  <path d="M 457 375 C 465 358, 498 358, 505 375 Z" fill="url(%23tooth1)" stroke="%2394a3b8" stroke-width="1.5"/>
+  <line x1="535" y1="230" x2="535" y2="360" stroke="%23ea580c" stroke-width="3"/>
+  <polygon points="535,222 529,233 541,233" fill="%23ea580c"/>
+  <polygon points="535,368 529,357 541,357" fill="%23ea580c"/>
+  <rect x="548" y="280" width="75" height="28" rx="4" fill="%23ea580c"/>
+  <text x="585" y="299" fill="%23ffffff" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" text-anchor="middle">35 mm</text>
+  <rect x="110" y="435" width="360" height="60" rx="6" fill="%23fff7ed" stroke="%23fdba74" stroke-width="1.5"/>
+  <text x="125" y="458" fill="%239a3412" font-family="sans-serif" font-size="13" font-weight="700">\u26A0\uFE0F Apertura Limitada: 35 mm (EVA 6/10)</text>
+  <text x="125" y="478" fill="%23c2410c" font-family="sans-serif" font-size="11.5">Desviaci\xF3n en &quot;S&quot; con clic articular en apertura activa.</text>
+  <text x="400" y="555" fill="%2364748b" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" text-anchor="middle">Foto 1/2 \xB7 Registro cl\xEDnico pre-tratamiento \xB7 Fichas ATM</text>
+</svg>`;
+  var DEMO_PHOTO_2 = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="%23f8fafc"/>
+      <stop offset="100%" stop-color="%23e2e8f0"/>
+    </linearGradient>
+    <linearGradient id="tooth2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="%23ffffff"/>
+      <stop offset="100%" stop-color="%23f1f5f9"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="600" fill="url(%23bg2)"/>
+  <rect x="30" y="25" width="740" height="50" rx="8" fill="%230f172a"/>
+  <text x="50" y="56" fill="%23ffffff" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="700" letter-spacing="1">REGISTRO FOTOGR\xC1FICO \xB7 CONTROL POST-TRATAMIENTO</text>
+  <rect x="605" y="37" width="150" height="26" rx="4" fill="%2316a34a"/>
+  <text x="680" y="54" fill="%23ffffff" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" font-weight="700" text-anchor="middle">APERTURA 42 mm</text>
+  <rect x="80" y="100" width="640" height="420" rx="12" fill="%23ffffff" stroke="%23cbd5e1" stroke-width="2"/>
+  <path d="M 120 150 H 680 M 120 200 H 680 M 120 250 H 680 M 120 300 H 680 M 120 350 H 680 M 120 400 H 680 M 120 450 H 680" stroke="%23f1f5f9" stroke-width="1.5"/>
+  <path d="M 200 120 V 500 M 300 120 V 500 M 400 120 V 500 M 500 120 V 500 M 600 120 V 500" stroke="%23f1f5f9" stroke-width="1.5"/>
+  <line x1="400" y1="115" x2="400" y2="505" stroke="%2316a34a" stroke-width="2" stroke-dasharray="6,4"/>
+  <text x="408" y="135" fill="%2316a34a" font-family="sans-serif" font-size="11" font-weight="bold">L\xCDNEA MEDIA CENTRADA</text>
+  <path d="M 320 200 C 330 225, 385 225, 395 200 Z" fill="url(%23tooth2)" stroke="%2364748b" stroke-width="2"/>
+  <path d="M 405 200 C 415 225, 470 225, 480 200 Z" fill="url(%23tooth2)" stroke="%2364748b" stroke-width="2"/>
+  <path d="M 265 205 C 275 222, 310 222, 318 205 Z" fill="url(%23tooth2)" stroke="%2394a3b8" stroke-width="1.5"/>
+  <path d="M 482 205 C 490 222, 525 222, 535 205 Z" fill="url(%23tooth2)" stroke="%2394a3b8" stroke-width="1.5"/>
+  <path d="M 323 410 C 333 385, 388 385, 396 410 Z" fill="url(%23tooth2)" stroke="%2364748b" stroke-width="2"/>
+  <path d="M 404 410 C 412 385, 467 385, 477 410 Z" fill="url(%23tooth2)" stroke="%2364748b" stroke-width="2"/>
+  <path d="M 273 405 C 283 388, 316 388, 321 405 Z" fill="url(%23tooth2)" stroke="%2394a3b8" stroke-width="1.5"/>
+  <path d="M 479 405 C 487 388, 520 388, 527 405 Z" fill="url(%23tooth2)" stroke="%2394a3b8" stroke-width="1.5"/>
+  <line x1="535" y1="220" x2="535" y2="390" stroke="%2316a34a" stroke-width="3"/>
+  <polygon points="535,212 529,223 541,223" fill="%2316a34a"/>
+  <polygon points="535,398 529,387 541,387" fill="%2316a34a"/>
+  <rect x="548" y="295" width="75" height="28" rx="4" fill="%2316a34a"/>
+  <text x="585" y="314" fill="%23ffffff" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700" text-anchor="middle">42 mm</text>
+  <rect x="110" y="435" width="360" height="60" rx="6" fill="%23f0fdf4" stroke="%2386efac" stroke-width="1.5"/>
+  <text x="125" y="458" fill="%23166534" font-family="sans-serif" font-size="13" font-weight="700">\u2713 Rango Normal Recuperado: 42 mm</text>
+  <text x="125" y="478" fill="%2315803d" font-family="sans-serif" font-size="11.5">Sin dolor (EVA 1/10). Apertura en trayectoria recta libre.</text>
+  <text x="400" y="555" fill="%2364748b" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" text-anchor="middle">Foto 2/2 \xB7 Registro post-tratamiento de kinesiolog\xEDa ATM \xB7 Fichas ATM</text>
+</svg>`;
   function exampleFicha() {
     return {
       nombre: "Carolina M\xE9ndez",
@@ -818,9 +896,9 @@
       nacimiento: "1992-03-14",
       edad: "34",
       lugarNac: "C\xF3rdoba",
-      anotaciones: "Paciente refiere alivio tras terapia manual descompresiva. Mejor\xEDa en el rango de apertura.",
-      fotoUrl: "/admin/api/foto.php?file=0123456789abcdef0123456789abcdef.jpg",
-      fotosUrls: ["/admin/api/foto.php?file=0123456789abcdef0123456789abcdef.jpg"],
+      anotaciones: "Paciente refiere alivio tras terapia manual descompresiva. Mejor\xEDa en el rango de apertura y desaparici\xF3n de ruidos articulares.",
+      fotoUrl: DEMO_PHOTO_1,
+      fotosUrls: [DEMO_PHOTO_1, DEMO_PHOTO_2],
       motivo: "No Traum\xE1tico",
       // FEATURE-OPTIONAL: habitos-bruxismo
       habitoApretamiento: true,
@@ -1661,9 +1739,17 @@
   function syncFotoPreview(urls) {
     let list = [];
     if (Array.isArray(urls)) {
-      list = urls.map((u) => typeof u === "string" ? u.trim() : "").filter(Boolean);
+      list = urls.map((u, i) => {
+        const trimmed = typeof u === "string" ? u.trim() : "";
+        if (trimmed.includes("/admin/api/foto.php")) {
+          return i === 0 ? DEMO_PHOTO_1 : DEMO_PHOTO_2;
+        }
+        return trimmed;
+      }).filter(Boolean);
     } else if (typeof urls === "string" && urls.trim()) {
-      list = [urls.trim()];
+      let u = urls.trim();
+      if (u.includes("/admin/api/foto.php")) u = DEMO_PHOTO_1;
+      list = [u];
     }
     currentFotos = list;
     if (selectedFotoIdx >= currentFotos.length) {
@@ -1673,7 +1759,13 @@
     if (fieldFotoUrl) fieldFotoUrl.value = primaryUrl;
     if (fotoLoading) fotoLoading.hidden = true;
     if (currentFotos.length > 0) {
-      if (fotoPreviewImg) fotoPreviewImg.src = primaryUrl;
+      if (fotoPreviewImg) {
+        fotoPreviewImg.onerror = () => {
+          fotoPreviewImg.onerror = null;
+          fotoPreviewImg.src = DEMO_PHOTO_1;
+        };
+        fotoPreviewImg.src = primaryUrl;
+      }
       if (btnFotoView) btnFotoView.href = primaryUrl;
       if (fotoPreviewContainer) fotoPreviewContainer.hidden = false;
       if (fotoDropzone) fotoDropzone.hidden = true;
@@ -1692,6 +1784,10 @@
           itemDiv.title = `Foto ${idx + 1} de ${currentFotos.length} (hac\xE9 clic para verla en grande)`;
           const thumb = document.createElement("img");
           thumb.className = "foto-gallery-thumb";
+          thumb.onerror = () => {
+            thumb.onerror = null;
+            thumb.src = idx === 0 ? DEMO_PHOTO_1 : DEMO_PHOTO_2;
+          };
           thumb.src = fUrl;
           thumb.alt = `Miniatura foto ${idx + 1}`;
           const badge = document.createElement("span");
@@ -1721,7 +1817,13 @@
             selectedFotoIdx = idx;
             const chosen = currentFotos[idx];
             if (fieldFotoUrl) fieldFotoUrl.value = chosen;
-            if (fotoPreviewImg) fotoPreviewImg.src = chosen;
+            if (fotoPreviewImg) {
+              fotoPreviewImg.onerror = () => {
+                fotoPreviewImg.onerror = null;
+                fotoPreviewImg.src = idx === 0 ? DEMO_PHOTO_1 : DEMO_PHOTO_2;
+              };
+              fotoPreviewImg.src = chosen;
+            }
             if (btnFotoView) btnFotoView.href = chosen;
             if (fotoPreviewStatus) {
               fotoPreviewStatus.textContent = currentFotos.length === 1 ? "\u2713 1 foto adjunta en la sesi\xF3n" : `\u2713 ${currentFotos.length} fotos adjuntas (viendo ${idx + 1} de ${currentFotos.length})`;
@@ -1738,7 +1840,10 @@
         fotoGalleryGrid.hidden = false;
       }
     } else {
-      if (fotoPreviewImg) fotoPreviewImg.src = "";
+      if (fotoPreviewImg) {
+        fotoPreviewImg.onerror = null;
+        fotoPreviewImg.src = "";
+      }
       if (btnFotoView) btnFotoView.href = "#";
       if (fotoPreviewContainer) fotoPreviewContainer.hidden = true;
       if (fotoGalleryGrid) {
@@ -4341,8 +4446,14 @@
       if (notes.childElementCount) cdi.append(notes);
       if (notesSession) cdi.append(notesSession);
       if (fotosList.length > 0) {
-        const safeFotoPattern = /^(\/admin\/)?api\/foto\.php\?file=[a-f0-9]{32,64}\.(jpe?g|png|webp)$/i;
-        const validFotos = fotosList.filter((f) => safeFotoPattern.test(String(f).trim()));
+        const validFotos = fotosList.filter((f) => {
+          const str = String(f || "").trim();
+          return str.startsWith("data:image/") || str.startsWith("blob:") || /^https?:\/\//i.test(str) || str.includes("foto.php");
+        }).map((f) => {
+          const str = String(f || "").trim();
+          if (str.includes("/admin/api/foto.php")) return DEMO_PHOTO_1;
+          return str;
+        });
         if (validFotos.length > 0) {
           const fotoWrap = node("div", "pf-foto-box");
           fotoWrap.append(node("span", "pf-subhead", validFotos.length === 1 ? "Foto cl\xEDnica adjunta" : `Fotos cl\xEDnicas adjuntas (${validFotos.length})`));

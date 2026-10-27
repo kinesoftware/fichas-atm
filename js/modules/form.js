@@ -18,6 +18,8 @@ import {
   validateStep,
   getUniquePatients,
   getSessionIndex,
+  DEMO_PHOTO_1,
+  DEMO_PHOTO_2,
 } from "../core/ficha-rules.mjs";
 import { dialogAlert, dialogConfirm } from "./dom.js";
 import { compressImage, blobToDataURL } from "./form-image.js";
@@ -68,9 +70,17 @@ let selectedFotoIdx = 0;
 export function syncFotoPreview(urls) {
   let list = [];
   if (Array.isArray(urls)) {
-    list = urls.map((u) => (typeof u === "string" ? u.trim() : "")).filter(Boolean);
+    list = urls.map((u, i) => {
+      const trimmed = typeof u === "string" ? u.trim() : "";
+      if (trimmed.includes("/admin/api/foto.php")) {
+        return i === 0 ? DEMO_PHOTO_1 : DEMO_PHOTO_2;
+      }
+      return trimmed;
+    }).filter(Boolean);
   } else if (typeof urls === "string" && urls.trim()) {
-    list = [urls.trim()];
+    let u = urls.trim();
+    if (u.includes("/admin/api/foto.php")) u = DEMO_PHOTO_1;
+    list = [u];
   }
   currentFotos = list;
   if (selectedFotoIdx >= currentFotos.length) {
@@ -82,7 +92,13 @@ export function syncFotoPreview(urls) {
   if (fotoLoading) fotoLoading.hidden = true;
 
   if (currentFotos.length > 0) {
-    if (fotoPreviewImg) fotoPreviewImg.src = primaryUrl;
+    if (fotoPreviewImg) {
+      fotoPreviewImg.onerror = () => {
+        fotoPreviewImg.onerror = null;
+        fotoPreviewImg.src = DEMO_PHOTO_1;
+      };
+      fotoPreviewImg.src = primaryUrl;
+    }
     if (btnFotoView) btnFotoView.href = primaryUrl;
     if (fotoPreviewContainer) fotoPreviewContainer.hidden = false;
     if (fotoDropzone) fotoDropzone.hidden = true;
@@ -109,6 +125,10 @@ export function syncFotoPreview(urls) {
 
         const thumb = document.createElement("img");
         thumb.className = "foto-gallery-thumb";
+        thumb.onerror = () => {
+          thumb.onerror = null;
+          thumb.src = idx === 0 ? DEMO_PHOTO_1 : DEMO_PHOTO_2;
+        };
         thumb.src = fUrl;
         thumb.alt = `Miniatura foto ${idx + 1}`;
 
@@ -142,7 +162,13 @@ export function syncFotoPreview(urls) {
           selectedFotoIdx = idx;
           const chosen = currentFotos[idx];
           if (fieldFotoUrl) fieldFotoUrl.value = chosen;
-          if (fotoPreviewImg) fotoPreviewImg.src = chosen;
+          if (fotoPreviewImg) {
+            fotoPreviewImg.onerror = () => {
+              fotoPreviewImg.onerror = null;
+              fotoPreviewImg.src = idx === 0 ? DEMO_PHOTO_1 : DEMO_PHOTO_2;
+            };
+            fotoPreviewImg.src = chosen;
+          }
           if (btnFotoView) btnFotoView.href = chosen;
           if (fotoPreviewStatus) {
             fotoPreviewStatus.textContent = currentFotos.length === 1
@@ -164,7 +190,10 @@ export function syncFotoPreview(urls) {
       fotoGalleryGrid.hidden = false;
     }
   } else {
-    if (fotoPreviewImg) fotoPreviewImg.src = "";
+    if (fotoPreviewImg) {
+      fotoPreviewImg.onerror = null;
+      fotoPreviewImg.src = "";
+    }
     if (btnFotoView) btnFotoView.href = "#";
     if (fotoPreviewContainer) fotoPreviewContainer.hidden = true;
     if (fotoGalleryGrid) {

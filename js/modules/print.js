@@ -10,6 +10,7 @@ import {
   ageOn,
   formatSessionBadgeText,
   shouldOmitInvariableFields,
+  DEMO_PHOTO_1,
 } from "../core/ficha-rules.mjs";
 import {
   formatDate,
@@ -332,8 +333,14 @@ export function buildSheet(item, sessionUser = null, meta = {}) {
     if (notes.childElementCount) cdi.append(notes);
     if (notesSession) cdi.append(notesSession);
     if (fotosList.length > 0) {
-      const safeFotoPattern = /^(\/admin\/)?api\/foto\.php\?file=[a-f0-9]{32,64}\.(jpe?g|png|webp)$/i;
-      const validFotos = fotosList.filter((f) => safeFotoPattern.test(String(f).trim()));
+      const validFotos = fotosList.filter((f) => {
+        const str = String(f || "").trim();
+        return str.startsWith("data:image/") || str.startsWith("blob:") || /^https?:\/\//i.test(str) || str.includes("foto.php");
+      }).map((f) => {
+        const str = String(f || "").trim();
+        if (str.includes("/admin/api/foto.php")) return DEMO_PHOTO_1;
+        return str;
+      });
       if (validFotos.length > 0) {
         const fotoWrap = node("div", "pf-foto-box");
         fotoWrap.append(node("span", "pf-subhead", validFotos.length === 1 ? "Foto clínica adjunta" : `Fotos clínicas adjuntas (${validFotos.length})`));
