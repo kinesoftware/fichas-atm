@@ -1,12 +1,6 @@
-# Configuración para despliegue en Netlify de Fichas ATM
-
-# Por defecto publica la carpeta "netlify" con la landing page y enlaces de descarga directa
+# Configuración para despliegue en Netlify de Fichas ATM (Página de descarga offline)
 [build]
   publish = "netlify"
-
-# Si prefieres desplegar directamente la aplicación clínica web completa,
-# simplemente cambia publish por "."
-# publish = "."
 
 [[redirects]]
   from = "/descargar"
