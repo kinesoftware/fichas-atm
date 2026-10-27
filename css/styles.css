@@ -109,102 +109,172 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(4px);
+  background: rgba(15, 23, 42, 0.72);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   padding: 20px;
+  overflow-y: auto;
 }
 
 .modal-card {
-  background: var(--surface);
-  color: var(--fg);
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-radius: 14px;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.4), 0 0 0 1px rgba(15, 23, 42, 0.05);
   width: 100%;
-  max-width: 580px;
+  max-width: 620px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
 }
 
 .modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--line);
+  padding: 16px 22px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #ffffff;
 }
 
 .modal-header h3 {
   margin: 0;
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
 }
 
 .modal-close {
   background: transparent;
   border: none;
-  font-size: 20px;
+  font-size: 22px;
   line-height: 1;
-  color: var(--muted);
+  color: #64748b;
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
 }
 
 .modal-close:hover {
-  background: var(--surface-hover);
-  color: var(--fg);
+  background: #f1f5f9;
+  color: #0f172a;
 }
 
 .modal-body {
-  padding: 20px;
+  padding: 22px;
   overflow-y: auto;
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.5;
+  background: #ffffff;
+  color: #334155;
+}
+
+.modal-body p {
+  color: #475569;
+}
+
+.modal-body label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 12px;
+}
+
+.modal-body input[type="text"],
+.modal-body input:not([type]),
+.modal-body select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #0f172a;
+  font-size: 13.5px;
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.modal-body input[type="text"]:focus,
+.modal-body input:not([type]):focus,
+.modal-body select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 .modal-footer {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   gap: 10px;
-  padding: 14px 20px;
-  border-top: 1px solid var(--line);
-  background: var(--surface-alt, #fafafa);
+  padding: 14px 22px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
 }
 
 .legal-notice {
   background: rgba(245, 158, 11, 0.08);
   border-left: 4px solid #f59e0b;
   padding: 12px 14px;
-  border-radius: 4px;
+  border-radius: 6px;
   margin-bottom: 16px;
   font-size: 13px;
-  color: var(--fg);
+  color: #1e293b;
+  line-height: 1.5;
 }
 
 .signature-preview-box {
   display: flex;
   align-items: center;
-  gap: 16px;
+  justify-content: space-between;
+  gap: 14px;
   margin-top: 10px;
-  padding: 12px;
-  border: 1px dashed var(--line);
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
-  background: var(--surface-hover);
+  background: #f8fafc;
+}
+
+.signature-preview-box[hidden] {
+  display: none !important;
+}
+
+.signature-preview-box-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .signature-preview-img {
   max-height: 60px;
-  max-width: 160px;
+  max-width: 170px;
   object-fit: contain;
-  background: #ffffff;
+  background-color: #ffffff;
+  background-image:
+    linear-gradient(45deg, #e2e8f0 25%, transparent 25%),
+    linear-gradient(-45deg, #e2e8f0 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #e2e8f0 75%),
+    linear-gradient(-45deg, transparent 75%, #e2e8f0 75%);
+  background-size: 12px 12px;
+  background-position: 0 0, 0 6px, 6px -6px, -6px 0px;
   padding: 4px;
-  border-radius: 4px;
-  border: 1px solid var(--line);
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+}
+
+.signature-preview-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }

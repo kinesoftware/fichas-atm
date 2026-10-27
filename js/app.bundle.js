@@ -1325,7 +1325,12 @@
   }
 
   // js/modules/form-image.js
-  async function compressImage(file, { maxDimension = 1920, quality = 0.82, maxSizeBytes = 5 * 1024 * 1024 } = {}) {
+  async function compressImage(file, {
+    maxDimension = 1920,
+    quality = 0.85,
+    maxSizeBytes = 5 * 1024 * 1024,
+    preserveTransparency = false
+  } = {}) {
     const validTypes = ["image/jpeg", "image/png", "image/webp"];
     if (!validTypes.includes(file.type)) {
       throw new Error("Formato de imagen no compatible. Us\xE1 JPG, PNG o WebP.");
@@ -1360,12 +1365,22 @@
               resolve(file);
               return;
             }
-            if (file.type === "image/png") {
+            const isPng = file.type === "image/png";
+            const keepAlpha = preserveTransparency || isPng && preserveTransparency !== false;
+            if (!keepAlpha) {
               ctx.fillStyle = "#ffffff";
               ctx.fillRect(0, 0, width, height);
             }
             ctx.drawImage(img, 0, 0, width, height);
-            const outputType = file.type === "image/webp" ? "image/webp" : "image/jpeg";
+            let outputType = "image/jpeg";
+            let ext = "jpg";
+            if (keepAlpha && isPng) {
+              outputType = "image/png";
+              ext = "png";
+            } else if (file.type === "image/webp") {
+              outputType = "image/webp";
+              ext = "webp";
+            }
             canvas.toBlob(
               (blob) => {
                 if (!blob) {
@@ -1380,7 +1395,6 @@
                   reject(new Error("La imagen optimizada supera el l\xEDmite de 5 MB. Prob\xE1 con una imagen m\xE1s liviana."));
                   return;
                 }
-                const ext = outputType === "image/webp" ? "webp" : "jpg";
                 const optimized = new File([blob], `adjunto.${ext}`, {
                   type: outputType,
                   lastModified: Date.now()
@@ -1397,6 +1411,45 @@
         img.src = e.target.result;
       };
       reader.readAsDataURL(file);
+    });
+  }
+  async function makeWhiteTransparent(dataUrl, threshold = 215) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onerror = () => reject(new Error("No se pudo procesar la imagen para transparencia."));
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            resolve(dataUrl);
+            return;
+          }
+          ctx.drawImage(img, 0, 0);
+          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const d = imgData.data;
+          for (let i = 0; i < d.length; i += 4) {
+            const r = d[i];
+            const g = d[i + 1];
+            const b = d[i + 2];
+            if (r >= threshold && g >= threshold && b >= threshold) {
+              d[i + 3] = 0;
+            } else if (r >= threshold - 35 && g >= threshold - 35 && b >= threshold - 35) {
+              const brightness = (r + g + b) / 3;
+              const factor = Math.max(0, Math.min(1, (255 - brightness) / 45));
+              d[i + 3] = Math.round(d[i + 3] * factor);
+            }
+          }
+          ctx.putImageData(imgData, 0, 0);
+          resolve(canvas.toDataURL("image/png"));
+        } catch (err) {
+          reject(err);
+        }
+      };
+      img.src = dataUrl;
     });
   }
   function blobToDataURL(blob) {
@@ -4215,9 +4268,13 @@
     const inputSignature = document.querySelector("#setting-signature-file");
     const previewSignature = document.querySelector("#setting-signature-preview");
     const removeSignatureBtn = document.querySelector("#btn-remove-signature");
+    const boxSignaturePreview = document.querySelector("#box-signature-preview");
+    const magicTransparentBtn = document.querySelector("#btn-magic-transparent");
     const inputLogo = document.querySelector("#setting-logo-file");
     const previewLogo = document.querySelector("#setting-logo-preview");
     const removeLogoBtn = document.querySelector("#btn-remove-logo");
+    const boxLogoPreview = document.querySelector("#box-logo-preview");
+    const cancelSettingsBtn = document.querySelector("#btn-cancel-settings");
     const topbarSelect = document.querySelector("#topbar-prof-select");
     let currentEditingId = null;
     let tempSignature = "";
@@ -4259,24 +4316,20 @@
       if (!previewSignature) return;
       if (tempSignature) {
         previewSignature.src = tempSignature;
-        previewSignature.hidden = false;
-        if (removeSignatureBtn) removeSignatureBtn.hidden = false;
+        if (boxSignaturePreview) boxSignaturePreview.hidden = false;
       } else {
         previewSignature.src = "";
-        previewSignature.hidden = true;
-        if (removeSignatureBtn) removeSignatureBtn.hidden = true;
+        if (boxSignaturePreview) boxSignaturePreview.hidden = true;
       }
     }
     function updateLogoPreview() {
       if (!previewLogo) return;
       if (tempLogo) {
         previewLogo.src = tempLogo;
-        previewLogo.hidden = false;
-        if (removeLogoBtn) removeLogoBtn.hidden = false;
+        if (boxLogoPreview) boxLogoPreview.hidden = false;
       } else {
         previewLogo.src = "";
-        previewLogo.hidden = true;
-        if (removeLogoBtn) removeLogoBtn.hidden = true;
+        if (boxLogoPreview) boxLogoPreview.hidden = true;
       }
     }
     if (openBtn) {
@@ -4351,7 +4404,7 @@
         e.target.value = "";
         if (!file) return;
         try {
-          const compressed = await compressImage(file, { maxDimension: 800, quality: 0.9 });
+          const compressed = await compressImage(file, { maxDimension: 800, quality: 0.95, preserveTransparency: true });
           tempSignature = await blobToDataURL(compressed);
           updateSignaturePreview();
         } catch (err) {
@@ -4365,13 +4418,30 @@
         updateSignaturePreview();
       });
     }
+    if (magicTransparentBtn) {
+      magicTransparentBtn.addEventListener("click", async () => {
+        if (!tempSignature) return;
+        try {
+          magicTransparentBtn.disabled = true;
+          magicTransparentBtn.textContent = "Procesando...";
+          tempSignature = await makeWhiteTransparent(tempSignature);
+          updateSignaturePreview();
+          await dialogAlert("Fondo blanco convertido a transparente con \xE9xito.", { type: "success" });
+        } catch (err) {
+          dialogAlert("No se pudo procesar la imagen: " + (err.message || err));
+        } finally {
+          magicTransparentBtn.disabled = false;
+          magicTransparentBtn.textContent = "\u{1FA84} Quitar fondo blanco";
+        }
+      });
+    }
     if (inputLogo) {
       inputLogo.addEventListener("change", async (e) => {
         const file = e.target.files[0];
         e.target.value = "";
         if (!file) return;
         try {
-          const compressed = await compressImage(file, { maxDimension: 600, quality: 0.9 });
+          const compressed = await compressImage(file, { maxDimension: 600, quality: 0.95, preserveTransparency: true });
           tempLogo = await blobToDataURL(compressed);
           updateLogoPreview();
         } catch (err) {
@@ -4383,6 +4453,11 @@
       removeLogoBtn.addEventListener("click", () => {
         tempLogo = "";
         updateLogoPreview();
+      });
+    }
+    if (cancelSettingsBtn) {
+      cancelSettingsBtn.addEventListener("click", () => {
+        if (modal) modal.hidden = true;
       });
     }
     if (saveBtn) {

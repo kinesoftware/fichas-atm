@@ -6,7 +6,7 @@
 
 import { getSetting, saveSetting } from "../storage/db.js";
 import { dialogAlert, dialogConfirm } from "./dom.js";
-import { compressImage, blobToDataURL } from "./form-image.js";
+import { compressImage, blobToDataURL, makeWhiteTransparent } from "./form-image.js";
 
 let professionalsList = [];
 let activeProfessionalId = null;
@@ -128,10 +128,14 @@ export function setupSettingsModal() {
   const inputSignature = document.querySelector("#setting-signature-file");
   const previewSignature = document.querySelector("#setting-signature-preview");
   const removeSignatureBtn = document.querySelector("#btn-remove-signature");
+  const boxSignaturePreview = document.querySelector("#box-signature-preview");
+  const magicTransparentBtn = document.querySelector("#btn-magic-transparent");
 
   const inputLogo = document.querySelector("#setting-logo-file");
   const previewLogo = document.querySelector("#setting-logo-preview");
   const removeLogoBtn = document.querySelector("#btn-remove-logo");
+  const boxLogoPreview = document.querySelector("#box-logo-preview");
+  const cancelSettingsBtn = document.querySelector("#btn-cancel-settings");
 
   const topbarSelect = document.querySelector("#topbar-prof-select");
 
@@ -184,12 +188,10 @@ export function setupSettingsModal() {
     if (!previewSignature) return;
     if (tempSignature) {
       previewSignature.src = tempSignature;
-      previewSignature.hidden = false;
-      if (removeSignatureBtn) removeSignatureBtn.hidden = false;
+      if (boxSignaturePreview) boxSignaturePreview.hidden = false;
     } else {
       previewSignature.src = "";
-      previewSignature.hidden = true;
-      if (removeSignatureBtn) removeSignatureBtn.hidden = true;
+      if (boxSignaturePreview) boxSignaturePreview.hidden = true;
     }
   }
 
@@ -197,12 +199,10 @@ export function setupSettingsModal() {
     if (!previewLogo) return;
     if (tempLogo) {
       previewLogo.src = tempLogo;
-      previewLogo.hidden = false;
-      if (removeLogoBtn) removeLogoBtn.hidden = false;
+      if (boxLogoPreview) boxLogoPreview.hidden = false;
     } else {
       previewLogo.src = "";
-      previewLogo.hidden = true;
-      if (removeLogoBtn) removeLogoBtn.hidden = true;
+      if (boxLogoPreview) boxLogoPreview.hidden = true;
     }
   }
 
@@ -289,7 +289,7 @@ export function setupSettingsModal() {
       e.target.value = "";
       if (!file) return;
       try {
-        const compressed = await compressImage(file, { maxDimension: 800, quality: 0.9 });
+        const compressed = await compressImage(file, { maxDimension: 800, quality: 0.95, preserveTransparency: true });
         tempSignature = await blobToDataURL(compressed);
         updateSignaturePreview();
       } catch (err) {
@@ -305,6 +305,25 @@ export function setupSettingsModal() {
     });
   }
 
+  // Quitar fondo blanco automáticamente (para firmas fotografiada en papel blanco)
+  if (magicTransparentBtn) {
+    magicTransparentBtn.addEventListener("click", async () => {
+      if (!tempSignature) return;
+      try {
+        magicTransparentBtn.disabled = true;
+        magicTransparentBtn.textContent = "Procesando...";
+        tempSignature = await makeWhiteTransparent(tempSignature);
+        updateSignaturePreview();
+        await dialogAlert("Fondo blanco convertido a transparente con éxito.", { type: "success" });
+      } catch (err) {
+        dialogAlert("No se pudo procesar la imagen: " + (err.message || err));
+      } finally {
+        magicTransparentBtn.disabled = false;
+        magicTransparentBtn.textContent = "🪄 Quitar fondo blanco";
+      }
+    });
+  }
+
   // Carga de logo institucional
   if (inputLogo) {
     inputLogo.addEventListener("change", async (e) => {
@@ -312,7 +331,7 @@ export function setupSettingsModal() {
       e.target.value = "";
       if (!file) return;
       try {
-        const compressed = await compressImage(file, { maxDimension: 600, quality: 0.9 });
+        const compressed = await compressImage(file, { maxDimension: 600, quality: 0.95, preserveTransparency: true });
         tempLogo = await blobToDataURL(compressed);
         updateLogoPreview();
       } catch (err) {
@@ -325,6 +344,12 @@ export function setupSettingsModal() {
     removeLogoBtn.addEventListener("click", () => {
       tempLogo = "";
       updateLogoPreview();
+    });
+  }
+
+  if (cancelSettingsBtn) {
+    cancelSettingsBtn.addEventListener("click", () => {
+      if (modal) modal.hidden = true;
     });
   }
 

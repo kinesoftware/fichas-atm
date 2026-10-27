@@ -735,30 +735,50 @@
         </label>
 
         <!-- Subida de firma -->
-        <div style="margin-bottom:14px;">
-          <label style="font-weight:600; font-size:13px; display:block; margin-bottom:4px;">
-            Firma digital / Sello (PNG con fondo transparente)
+        <div style="margin-bottom:16px;">
+          <label style="font-weight:600; font-size:13px; display:block; margin-bottom:6px;">
+            Firma digital / Sello del profesional (PNG con transparencia recomendado)
           </label>
           <input type="file" id="setting-signature-file" accept="image/png,image/webp,image/jpeg" style="font-size:13px;">
-          <div class="signature-preview-box">
-            <img id="setting-signature-preview" src="" alt="Vista previa de firma" class="signature-preview-img" hidden>
-            <button type="button" class="btn ghost btn-sm text-danger" id="btn-remove-signature" hidden>Quitar firma</button>
+          <div class="signature-preview-box" id="box-signature-preview" hidden>
+            <div class="signature-preview-box-left">
+              <img id="setting-signature-preview" src="" alt="Vista previa de firma" class="signature-preview-img">
+              <div style="font-size:12px; color:var(--muted); line-height:1.4;">
+                <span style="display:block; font-weight:600; color:var(--navy);">Firma digital registrada</span>
+                <span>La cuadrícula de fondo indica transparencia.</span>
+              </div>
+            </div>
+            <div class="signature-preview-actions">
+              <button type="button" class="btn light btn-sm" id="btn-magic-transparent" title="Si la firma fue fotografiada en papel blanco, limpia el fondo automáticamente">
+                🪄 Quitar fondo blanco
+              </button>
+              <button type="button" class="btn ghost btn-sm text-danger" id="btn-remove-signature">Quitar</button>
+            </div>
           </div>
         </div>
 
         <!-- Subida de logo institucional -->
-        <div>
-          <label style="font-weight:600; font-size:13px; display:block; margin-bottom:4px;">
-            Logo del consultorio (opcional para el membrete superior)
+        <div style="margin-bottom:8px;">
+          <label style="font-weight:600; font-size:13px; display:block; margin-bottom:6px;">
+            Logo del consultorio (opcional para el membrete del informe PDF)
           </label>
           <input type="file" id="setting-logo-file" accept="image/png,image/webp,image/jpeg" style="font-size:13px;">
-          <div class="signature-preview-box">
-            <img id="setting-logo-preview" src="" alt="Vista previa de logo" class="signature-preview-img" hidden>
-            <button type="button" class="btn ghost btn-sm text-danger" id="btn-remove-logo" hidden>Quitar logo</button>
+          <div class="signature-preview-box" id="box-logo-preview" hidden>
+            <div class="signature-preview-box-left">
+              <img id="setting-logo-preview" src="" alt="Vista previa de logo" class="signature-preview-img">
+              <div style="font-size:12px; color:var(--muted); line-height:1.4;">
+                <span style="display:block; font-weight:600; color:var(--navy);">Logo registrado</span>
+                <span>Se imprimirá en el margen superior de cada informe.</span>
+              </div>
+            </div>
+            <div class="signature-preview-actions">
+              <button type="button" class="btn ghost btn-sm text-danger" id="btn-remove-logo">Quitar</button>
+            </div>
           </div>
         </div>
       </div>
       <div class="modal-footer">
+        <button type="button" class="btn light" id="btn-cancel-settings">Cerrar</button>
         <button type="button" class="btn green" id="btn-save-settings">Guardar perfil</button>
       </div>
     </div>
