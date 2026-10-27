@@ -317,13 +317,12 @@ export function fillForm(data, allFichas = []) {
   }
 
   const sessionUser = typeof activeSessionUserGetter === "function" ? activeSessionUserGetter() : null;
-  const isAdmin = sessionUser?.username === "martin";
   const profField = document.querySelector("#field-profesional");
   if (profField) {
-    profField.hidden = !isAdmin;
+    profField.hidden = false;
   }
   if (form.elements.profesional) {
-    form.elements.profesional.value = data.profesional || "default";
+    form.elements.profesional.value = data.profesional || sessionUser?.id || "";
   }
 
   const pSessions = (data.dni || data.nombre)
@@ -1165,5 +1164,23 @@ export function initForm({ onSave, onBack, onCompare, onPrint, getSessionUser })
         onPrint(pSessions.length ? pSessions : [currentItem]);
       }
     });
+  }
+}
+
+export function syncFormProfessionals(professionals = [], activeId = "") {
+  const sel = document.querySelector("#field-form-profesional") || (form && form.elements.profesional);
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = "";
+  for (const p of professionals) {
+    const opt = document.createElement("option");
+    opt.value = p.id;
+    opt.textContent = p.nombre || "Profesional sin nombre";
+    sel.appendChild(opt);
+  }
+  if (current && [...sel.options].some((o) => o.value === current)) {
+    sel.value = current;
+  } else if (activeId) {
+    sel.value = activeId;
   }
 }

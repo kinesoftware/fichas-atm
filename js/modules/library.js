@@ -181,11 +181,11 @@ export function visibleFichas(sessionUser = null) {
   return loadAll()
     .filter((item) => {
       if (activeFilterProf === "todos") return true;
-      const prof = (item?.profesional || "").toLowerCase();
-      if (activeFilterProf === "indistinto") {
-        return prof === "indistinto" || prof === "";
-      }
-      return prof === activeFilterProf;
+      const target = activeFilterProf.toLowerCase();
+      const pId = String(item?.profesionalId || "").toLowerCase();
+      const pKey = String(item?.profesional || "").toLowerCase();
+      const pName = String(item?.profesionalNombre || "").toLowerCase();
+      return pId === target || pKey === target || pName === target;
     })
     .filter((item) => matchFichaSearch(item, q))
     .sort((a, b) => (b.fechaSesion || "").localeCompare(a.fechaSesion || ""));
@@ -241,6 +241,23 @@ export function pageWindow(rows) {
 /**
  * Sincroniza el texto y apariencia del botón de filtro personal ("Mis pacientes").
  */
+export function updateLibraryProfFilter(professionals = []) {
+  if (!filterProfSelect) return;
+  const currentVal = filterProfSelect.value;
+  filterProfSelect.innerHTML = '<option value="todos">Todos los profesionales</option>';
+  for (const p of professionals) {
+    const opt = document.createElement("option");
+    opt.value = p.id;
+    opt.textContent = p.nombre || "Sin nombre";
+    filterProfSelect.appendChild(opt);
+  }
+  if (currentVal && [...filterProfSelect.options].some((o) => o.value === currentVal)) {
+    filterProfSelect.value = currentVal;
+  } else {
+    filterProfSelect.value = "todos";
+  }
+}
+
 export function syncMineButton() {
   if (!mineButton) return;
   mineButton.setAttribute("aria-pressed", String(onlyMine));
@@ -392,20 +409,9 @@ export function renderLibrary() {
     } else {
       emptyBox.innerHTML = `
         <div class="empty-icon">📋</div>
-        <h3>No hay fichas guardadas todavía</h3>
-        <p>Tus historias clínicas se guardarán de forma segura en este dispositivo.</p>
-        <div class="empty-actions">
-          <button type="button" class="btn green" id="btn-empty-new">➕ Nueva sesión</button>
-          <button type="button" class="btn light" id="btn-empty-example">💡 Cargar ficha de ejemplo</button>
-        </div>
+        <h3>No hay historias clínicas guardadas</h3>
+        <p>Utiliza los botones de arriba ("➕ Nueva sesión" o "💡 Cargar ejemplo") para registrar tu primera atención.</p>
       `;
-      emptyBox.querySelector("#btn-empty-new")?.addEventListener("click", () => {
-        if (typeof activeRowCallbacks.onNewFichaBlank === "function") activeRowCallbacks.onNewFichaBlank();
-        else if (btnNew) btnNew.click();
-      });
-      emptyBox.querySelector("#btn-empty-example")?.addEventListener("click", () => {
-        document.querySelector("#btn-example-ficha")?.click();
-      });
     }
     fragment.append(emptyBox);
   } else {

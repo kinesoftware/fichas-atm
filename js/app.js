@@ -29,6 +29,7 @@ import {
   showForm,
   blank,
   todayISO,
+  syncFormProfessionals,
 } from "./modules/form.js";
 
 import {
@@ -37,6 +38,7 @@ import {
   renderLibrary,
   setCache,
   loadAll,
+  updateLibraryProfFilter,
 } from "./modules/library.js";
 
 import {
@@ -51,8 +53,11 @@ import {
 
 import {
   initSettings,
-  getClinician,
+  getActiveProfessional,
+  getProfessionals,
+  getProfessionalById,
   setupSettingsModal,
+  onProfessionalChange,
 } from "./modules/settings.js";
 
 import {
@@ -85,7 +90,13 @@ async function initApp() {
     // 1. Inicializar base de datos local y configuración profesional
     await initDb();
     await initSettings();
-    setClinicianGetter(() => getClinician());
+    setClinicianGetter((id) => getProfessionalById(id));
+
+    onProfessionalChange((active, list) => {
+      syncFormProfessionals(list, active.id);
+      updateLibraryProfFilter(list);
+      renderLibrary();
+    });
 
     // 2. Conectar controlador del formulario clínico
     initForm({
@@ -102,6 +113,15 @@ async function initApp() {
             await upsert(next);
           }
         }
+        // Asociar el profesional actuante
+        if (!data.profesional) {
+          data.profesional = getActiveProfessional().id;
+        }
+        const prof = getProfessionalById(data.profesional);
+        if (prof) {
+          data.profesionalNombre = prof.nombre;
+          data.profesionalId = prof.id;
+        }
         await upsert(data);
         await dialogAlert("Sesión clínica guardada correctamente en tu dispositivo.", { type: "success" });
         showLibrary();
@@ -113,14 +133,14 @@ async function initApp() {
         showCompare(pKey, id);
       },
       onPrint: (items) => {
-        printItems(items, getClinician());
+        printItems(items, getActiveProfessional());
       },
-      getSessionUser: () => getClinician(),
+      getSessionUser: () => getActiveProfessional(),
     });
 
     // 3. Conectar controlador de la biblioteca
     initLibrary({
-      getSessionUser: () => getClinician(),
+      getSessionUser: () => getActiveProfessional(),
       onOpenFicha: (item) => {
         fillForm(item, loadAll());
         showForm(0);
@@ -130,7 +150,7 @@ async function initApp() {
         showForm(0);
       },
       onPdfFicha: (items) => {
-        printItems(items, getClinician());
+        printItems(items, getActiveProfessional());
       },
       onDeleteFicha: async (item) => {
         try {
@@ -163,7 +183,7 @@ async function initApp() {
     // 4. Conectar controlador del comparador de sesiones
     initCompare({
       getAllFichas: loadAll,
-      getSessionUser: () => getClinician(),
+      getSessionUser: () => getActiveProfessional(),
       onBackToLibrary: () => {
         showLibrary();
       },
@@ -174,6 +194,10 @@ async function initApp() {
 
     // 5. Configuración de perfil profesional y firma
     setupSettingsModal();
+
+    // Sincronizar selectores iniciales
+    syncFormProfessionals(getProfessionals(), getActiveProfessional().id);
+    updateLibraryProfFilter(getProfessionals());
 
     // 6. Botones de Respaldo Global (Backup JSON)
     const btnBackupExport = document.querySelector("#btn-backup-export");

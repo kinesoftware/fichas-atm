@@ -1736,13 +1736,12 @@
       postAccordion.open = hasPostData;
     }
     const sessionUser = typeof activeSessionUserGetter === "function" ? activeSessionUserGetter() : null;
-    const isAdmin = sessionUser?.username === "martin";
     const profField = document.querySelector("#field-profesional");
     if (profField) {
-      profField.hidden = !isAdmin;
+      profField.hidden = false;
     }
     if (form.elements.profesional) {
-      form.elements.profesional.value = data.profesional || "default";
+      form.elements.profesional.value = data.profesional || sessionUser?.id || "";
     }
     const pSessions = data.dni || data.nombre ? allFichas.filter((f) => patientKey(f) === patientKey(data)) : [];
     if (compareFormBtn) {
@@ -2438,6 +2437,23 @@
       });
     }
   }
+  function syncFormProfessionals(professionals = [], activeId = "") {
+    const sel = document.querySelector("#field-form-profesional") || form && form.elements.profesional;
+    if (!sel) return;
+    const current = sel.value;
+    sel.innerHTML = "";
+    for (const p of professionals) {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = p.nombre || "Profesional sin nombre";
+      sel.appendChild(opt);
+    }
+    if (current && [...sel.options].some((o) => o.value === current)) {
+      sel.value = current;
+    } else if (activeId) {
+      sel.value = activeId;
+    }
+  }
 
   // js/modules/library-rows.js
   var rowsCtx = {
@@ -2821,11 +2837,11 @@
     const q = searchInput ? searchInput.value : "";
     return loadAll().filter((item) => {
       if (activeFilterProf === "todos") return true;
-      const prof = (item?.profesional || "").toLowerCase();
-      if (activeFilterProf === "indistinto") {
-        return prof === "indistinto" || prof === "";
-      }
-      return prof === activeFilterProf;
+      const target = activeFilterProf.toLowerCase();
+      const pId = String(item?.profesionalId || "").toLowerCase();
+      const pKey = String(item?.profesional || "").toLowerCase();
+      const pName = String(item?.profesionalNombre || "").toLowerCase();
+      return pId === target || pKey === target || pName === target;
     }).filter((item) => matchFichaSearch(item, q)).sort((a, b) => (b.fechaSesion || "").localeCompare(a.fechaSesion || ""));
   }
   function pageWindow(rows) {
@@ -2861,6 +2877,22 @@
     }
     const start = page * size;
     return rows.slice(start, start + size);
+  }
+  function updateLibraryProfFilter(professionals = []) {
+    if (!filterProfSelect) return;
+    const currentVal = filterProfSelect.value;
+    filterProfSelect.innerHTML = '<option value="todos">Todos los profesionales</option>';
+    for (const p of professionals) {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = p.nombre || "Sin nombre";
+      filterProfSelect.appendChild(opt);
+    }
+    if (currentVal && [...filterProfSelect.options].some((o) => o.value === currentVal)) {
+      filterProfSelect.value = currentVal;
+    } else {
+      filterProfSelect.value = "todos";
+    }
   }
   function syncMineButton() {
     if (!mineButton) return;
@@ -2967,20 +2999,9 @@
       } else {
         emptyBox.innerHTML = `
         <div class="empty-icon">\u{1F4CB}</div>
-        <h3>No hay fichas guardadas todav\xEDa</h3>
-        <p>Tus historias cl\xEDnicas se guardar\xE1n de forma segura en este dispositivo.</p>
-        <div class="empty-actions">
-          <button type="button" class="btn green" id="btn-empty-new">\u2795 Nueva sesi\xF3n</button>
-          <button type="button" class="btn light" id="btn-empty-example">\u{1F4A1} Cargar ficha de ejemplo</button>
-        </div>
+        <h3>No hay historias cl\xEDnicas guardadas</h3>
+        <p>Utiliza los botones de arriba ("\u2795 Nueva sesi\xF3n" o "\u{1F4A1} Cargar ejemplo") para registrar tu primera atenci\xF3n.</p>
       `;
-        emptyBox.querySelector("#btn-empty-new")?.addEventListener("click", () => {
-          if (typeof activeRowCallbacks.onNewFichaBlank === "function") activeRowCallbacks.onNewFichaBlank();
-          else if (btnNew) btnNew.click();
-        });
-        emptyBox.querySelector("#btn-empty-example")?.addEventListener("click", () => {
-          document.querySelector("#btn-example-ficha")?.click();
-        });
       }
       fragment.append(emptyBox);
     } else {
@@ -4005,8 +4026,8 @@
         }
       }
     }
-    const profKey = item.profesional || "default";
-    const details = customClinician || CLINICIAN_DETAILS[profKey] || {
+    const profId = item.profesionalId || item.profesional || "";
+    const details = (typeof activeClinicianGetter === "function" ? activeClinicianGetter(profId) : null) || {
       nombre: item.profesionalNombre || "Profesional actuante",
       titulo: "Kinesi\xF3logo/a - Fisioterapeuta",
       matricula: "",
@@ -4094,29 +4115,98 @@
   }
 
   // js/modules/settings.js
-  var cachedClinician = null;
-  var DEFAULT_CLINICIAN = {
-    nombre: "",
+  var professionalsList = [];
+  var activeProfessionalId = null;
+  var onProfessionalChangeCallbacks = [];
+  var DEFAULT_PROFESSIONAL = {
+    id: "prof_default",
+    nombre: "Profesional Tratante",
     titulo: "Kinesi\xF3logo/a - Fisioterapeuta",
     matricula: "",
-    institucion: "Consultorio de ATM y Fisioterapia",
+    institucion: "Consultorio de ATM",
     contacto: "",
     signatureDataUrl: "",
     logoDataUrl: ""
   };
-  async function initSettings() {
-    const saved = await getSetting("clinician", null);
-    cachedClinician = saved ? { ...DEFAULT_CLINICIAN, ...saved } : { ...DEFAULT_CLINICIAN };
-    return cachedClinician;
+  function onProfessionalChange(callback) {
+    if (typeof callback === "function") {
+      onProfessionalChangeCallbacks.push(callback);
+    }
   }
-  function getClinician() {
-    return cachedClinician || { ...DEFAULT_CLINICIAN };
+  function notifyProfessionalChange() {
+    const active = getActiveProfessional();
+    for (const cb of onProfessionalChangeCallbacks) {
+      try {
+        cb(active, professionalsList);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }
+  async function initSettings() {
+    let savedList = await getSetting("professionals", null);
+    if (!savedList || !Array.isArray(savedList) || savedList.length === 0) {
+      const legacySingle = await getSetting("clinician", null);
+      if (legacySingle && legacySingle.nombre) {
+        savedList = [{ ...legacySingle, id: legacySingle.id || `prof_${Date.now()}` }];
+      } else {
+        savedList = [{ ...DEFAULT_PROFESSIONAL, id: `prof_${Date.now()}` }];
+      }
+      await saveSetting("professionals", savedList);
+    }
+    professionalsList = savedList;
+    const savedActiveId = await getSetting("activeProfessionalId", null);
+    if (savedActiveId && professionalsList.some((p) => p.id === savedActiveId)) {
+      activeProfessionalId = savedActiveId;
+    } else {
+      activeProfessionalId = professionalsList[0].id;
+      await saveSetting("activeProfessionalId", activeProfessionalId);
+    }
+    syncTopbarSelector();
+    notifyProfessionalChange();
+    return getActiveProfessional();
+  }
+  function getProfessionals() {
+    return [...professionalsList];
+  }
+  function getActiveProfessional() {
+    if (!professionalsList.length) return { ...DEFAULT_PROFESSIONAL };
+    const found = professionalsList.find((p) => p.id === activeProfessionalId);
+    return found ? { ...found } : { ...professionalsList[0] };
+  }
+  function getProfessionalById(id) {
+    if (!id) return getActiveProfessional();
+    const found = professionalsList.find((p) => p.id === id || p.nombre === id);
+    return found ? { ...found } : getActiveProfessional();
+  }
+  async function setActiveProfessional(id) {
+    if (professionalsList.some((p) => p.id === id)) {
+      activeProfessionalId = id;
+      await saveSetting("activeProfessionalId", id);
+      syncTopbarSelector();
+      notifyProfessionalChange();
+    }
+  }
+  function syncTopbarSelector() {
+    const select = document.querySelector("#topbar-prof-select");
+    if (!select) return;
+    select.innerHTML = "";
+    for (const p of professionalsList) {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = p.nombre || "Profesional sin nombre";
+      if (p.id === activeProfessionalId) opt.selected = true;
+      select.appendChild(opt);
+    }
   }
   function setupSettingsModal() {
     const modal = document.querySelector("#modal-settings");
     const openBtn = document.querySelector("#btn-open-settings");
     const closeBtn = document.querySelector("#btn-close-settings");
     const saveBtn = document.querySelector("#btn-save-settings");
+    const newProfBtn = document.querySelector("#btn-new-professional");
+    const deleteProfBtn = document.querySelector("#btn-delete-professional");
+    const profSelectModal = document.querySelector("#modal-select-professional");
     const inputNombre = document.querySelector("#setting-nombre");
     const inputTitulo = document.querySelector("#setting-titulo");
     const inputMatricula = document.querySelector("#setting-matricula");
@@ -4128,19 +4218,42 @@
     const inputLogo = document.querySelector("#setting-logo-file");
     const previewLogo = document.querySelector("#setting-logo-preview");
     const removeLogoBtn = document.querySelector("#btn-remove-logo");
+    const topbarSelect = document.querySelector("#topbar-prof-select");
+    let currentEditingId = null;
     let tempSignature = "";
     let tempLogo = "";
-    function populateForm() {
-      const c = getClinician();
-      if (inputNombre) inputNombre.value = c.nombre || "";
-      if (inputTitulo) inputTitulo.value = c.titulo || "";
-      if (inputMatricula) inputMatricula.value = c.matricula || "";
-      if (inputInstitucion) inputInstitucion.value = c.institucion || "";
-      if (inputContacto) inputContacto.value = c.contacto || "";
-      tempSignature = c.signatureDataUrl || "";
+    if (topbarSelect) {
+      topbarSelect.addEventListener("change", (e) => {
+        setActiveProfessional(e.target.value);
+      });
+    }
+    function populateModalList(selectedId) {
+      if (!profSelectModal) return;
+      profSelectModal.innerHTML = "";
+      for (const p of professionalsList) {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.textContent = p.nombre || "Profesional sin nombre";
+        if (p.id === selectedId) opt.selected = true;
+        profSelectModal.appendChild(opt);
+      }
+    }
+    function loadProfessionalIntoForm(id) {
+      currentEditingId = id;
+      const p = professionalsList.find((item) => item.id === id) || professionalsList[0] || { ...DEFAULT_PROFESSIONAL };
+      if (inputNombre) inputNombre.value = p.nombre || "";
+      if (inputTitulo) inputTitulo.value = p.titulo || "";
+      if (inputMatricula) inputMatricula.value = p.matricula || "";
+      if (inputInstitucion) inputInstitucion.value = p.institucion || "";
+      if (inputContacto) inputContacto.value = p.contacto || "";
+      tempSignature = p.signatureDataUrl || "";
       updateSignaturePreview();
-      tempLogo = c.logoDataUrl || "";
+      tempLogo = p.logoDataUrl || "";
       updateLogoPreview();
+      if (deleteProfBtn) {
+        deleteProfBtn.disabled = professionalsList.length <= 1;
+        deleteProfBtn.title = professionalsList.length <= 1 ? "Debe existir al menos un profesional registrado." : "Eliminar este profesional";
+      }
     }
     function updateSignaturePreview() {
       if (!previewSignature) return;
@@ -4168,7 +4281,8 @@
     }
     if (openBtn) {
       openBtn.addEventListener("click", () => {
-        populateForm();
+        populateModalList(activeProfessionalId);
+        loadProfessionalIntoForm(activeProfessionalId);
         if (modal) modal.hidden = false;
       });
     }
@@ -4180,6 +4294,55 @@
     if (modal) {
       modal.addEventListener("click", (e) => {
         if (e.target === modal) modal.hidden = true;
+      });
+    }
+    if (profSelectModal) {
+      profSelectModal.addEventListener("change", (e) => {
+        loadProfessionalIntoForm(e.target.value);
+      });
+    }
+    if (newProfBtn) {
+      newProfBtn.addEventListener("click", () => {
+        const newId = `prof_${Date.now()}`;
+        const newProf = {
+          id: newId,
+          nombre: "Nuevo Profesional",
+          titulo: "Kinesi\xF3logo/a - Fisioterapeuta",
+          matricula: "",
+          institucion: professionalsList[0]?.institucion || "Consultorio de ATM",
+          contacto: professionalsList[0]?.contacto || "",
+          signatureDataUrl: "",
+          logoDataUrl: professionalsList[0]?.logoDataUrl || ""
+        };
+        professionalsList.push(newProf);
+        populateModalList(newId);
+        loadProfessionalIntoForm(newId);
+        inputNombre?.focus();
+        inputNombre?.select();
+      });
+    }
+    if (deleteProfBtn) {
+      deleteProfBtn.addEventListener("click", async () => {
+        if (professionalsList.length <= 1) {
+          dialogAlert("Debe existir al menos un profesional registrado.");
+          return;
+        }
+        const p = professionalsList.find((item) => item.id === currentEditingId);
+        const confirmed = await dialogConfirm(
+          `\xBFEliminar el perfil de "${p?.nombre || "este profesional"}"? Las fichas hist\xF3ricas conservar\xE1n su nombre registrado.`
+        );
+        if (!confirmed) return;
+        professionalsList = professionalsList.filter((item) => item.id !== currentEditingId);
+        await saveSetting("professionals", professionalsList);
+        if (activeProfessionalId === currentEditingId) {
+          activeProfessionalId = professionalsList[0].id;
+          await saveSetting("activeProfessionalId", activeProfessionalId);
+        }
+        syncTopbarSelector();
+        populateModalList(activeProfessionalId);
+        loadProfessionalIntoForm(activeProfessionalId);
+        notifyProfessionalChange();
+        await dialogAlert("Profesional eliminado correctamente.", { type: "success" });
       });
     }
     if (inputSignature) {
@@ -4224,8 +4387,11 @@
     }
     if (saveBtn) {
       saveBtn.addEventListener("click", async () => {
+        const idx = professionalsList.findIndex((item) => item.id === currentEditingId);
+        if (idx === -1) return;
         const updated = {
-          nombre: inputNombre?.value.trim() || "",
+          ...professionalsList[idx],
+          nombre: inputNombre?.value.trim() || "Profesional sin nombre",
           titulo: inputTitulo?.value.trim() || "",
           matricula: inputMatricula?.value.trim() || "",
           institucion: inputInstitucion?.value.trim() || "",
@@ -4233,10 +4399,15 @@
           signatureDataUrl: tempSignature,
           logoDataUrl: tempLogo
         };
-        await saveSetting("clinician", updated);
-        cachedClinician = updated;
+        professionalsList[idx] = updated;
+        await saveSetting("professionals", professionalsList);
+        if (currentEditingId === activeProfessionalId) {
+          notifyProfessionalChange();
+        }
+        syncTopbarSelector();
+        populateModalList(currentEditingId);
         if (modal) modal.hidden = true;
-        await dialogAlert("Datos profesionales y firma guardados localmente.", { type: "success" });
+        await dialogAlert("Perfil profesional y firma guardados localmente.", { type: "success" });
       });
     }
   }
@@ -4261,7 +4432,12 @@
     try {
       await initDb();
       await initSettings();
-      setClinicianGetter(() => getClinician());
+      setClinicianGetter((id) => getProfessionalById(id));
+      onProfessionalChange((active, list) => {
+        syncFormProfessionals(list, active.id);
+        updateLibraryProfFilter(list);
+        renderLibrary();
+      });
       initForm({
         onSave: async (data, meta) => {
           if (meta?.identityKey) {
@@ -4276,6 +4452,14 @@
               await upsert2(next);
             }
           }
+          if (!data.profesional) {
+            data.profesional = getActiveProfessional().id;
+          }
+          const prof = getProfessionalById(data.profesional);
+          if (prof) {
+            data.profesionalNombre = prof.nombre;
+            data.profesionalId = prof.id;
+          }
           await upsert2(data);
           await dialogAlert("Sesi\xF3n cl\xEDnica guardada correctamente en tu dispositivo.", { type: "success" });
           showLibrary();
@@ -4287,12 +4471,12 @@
           showCompare(pKey, id);
         },
         onPrint: (items) => {
-          printItems(items, getClinician());
+          printItems(items, getActiveProfessional());
         },
-        getSessionUser: () => getClinician()
+        getSessionUser: () => getActiveProfessional()
       });
       initLibrary({
-        getSessionUser: () => getClinician(),
+        getSessionUser: () => getActiveProfessional(),
         onOpenFicha: (item) => {
           fillForm(item, loadAll());
           showForm(0);
@@ -4302,7 +4486,7 @@
           showForm(0);
         },
         onPdfFicha: (items) => {
-          printItems(items, getClinician());
+          printItems(items, getActiveProfessional());
         },
         onDeleteFicha: async (item) => {
           try {
@@ -4333,7 +4517,7 @@
       });
       initCompare({
         getAllFichas: loadAll,
-        getSessionUser: () => getClinician(),
+        getSessionUser: () => getActiveProfessional(),
         onBackToLibrary: () => {
           showLibrary();
         },
@@ -4342,6 +4526,8 @@
         }
       });
       setupSettingsModal();
+      syncFormProfessionals(getProfessionals(), getActiveProfessional().id);
+      updateLibraryProfFilter(getProfessionals());
       const btnBackupExport = document.querySelector("#btn-backup-export");
       if (btnBackupExport) {
         btnBackupExport.addEventListener("click", async () => {

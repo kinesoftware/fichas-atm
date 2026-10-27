@@ -28,18 +28,22 @@
       </div>
 
       <nav class="topbar-right" aria-label="Navegación general">
-        <button type="button" class="topbar-btn" id="btn-open-settings" onclick="window.FichasATM?.openSettings()" title="Configurar nombre profesional, matrícula y firma para el PDF">
-          ⚙️ Mi Perfil / Firma
-        </button>
+        <div class="topbar-prof-wrap" style="display:flex; align-items:center; gap:6px;">
+          <span style="font-size:12px; font-weight:600; color:var(--muted);">Profesional:</span>
+          <select id="topbar-prof-select" style="padding:6px 10px; border-radius:var(--radius-sm); border:1px solid var(--line); font-size:13px; font-weight:500; background:#fff;" aria-label="Seleccionar profesional activo"></select>
+          <button type="button" class="topbar-btn" id="btn-open-settings" onclick="window.FichasATM?.openSettings()" title="Gestionar profesionales, matrículas y firmas digitales">
+            ⚙️ Gestionar
+          </button>
+        </div>
         <button type="button" class="topbar-btn" id="btn-backup-export" onclick="window.FichasATM?.exportBackup()" title="Descargar copia de seguridad con todas tus fichas en archivo JSON">
-          💾 Respaldar (JSON)
+          💾 Respaldar
         </button>
         <label class="topbar-btn file-btn" title="Restaurar fichas clínicas desde un archivo de respaldo">
           📥 Restaurar
           <input type="file" id="backup-file-input" accept="application/json,.json" hidden>
         </label>
         <button type="button" class="topbar-btn" id="btn-open-legal" onclick="window.FichasATM?.openLegal()" title="Información legal, descargo médico y privacidad">
-          ℹ️ Privacidad & Legal
+          ℹ️ Legal
         </button>
       </nav>
     </div>
@@ -61,14 +65,6 @@
           <button type="button" class="btn light" id="btn-example-ficha" onclick="window.FichasATM?.loadExample()" title="Carga una ficha ficticia con datos completos para probar las funciones de impresión y comparativa">
             💡 Cargar ejemplo
           </button>
-          <div class="hero-secondary">
-            <label class="hero-link file-btn">
-              Abrir JSON
-              <input type="file" id="file-open" accept="application/json,.json" hidden>
-            </label>
-            <span class="hero-sep" aria-hidden="true">·</span>
-            <button type="button" class="hero-link" id="btn-export">Exportar selección</button>
-          </div>
         </div>
       </div>
 
@@ -84,6 +80,12 @@
           </label>
         </div>
         <div class="lt-row lt-row-controls">
+          <label class="lt-sort">
+            <span class="lt-sort-label">Profesional:</span>
+            <select id="filter-library-prof" aria-label="Filtrar por profesional">
+              <option value="todos">Todos los profesionales</option>
+            </select>
+          </label>
           <label class="lt-sort">
             <svg class="lt-sort-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4v16M7 20l-3-3M7 20l3-3M17 20V4M17 4l-3 3M17 4l3 3"/></svg>
             <span class="lt-sort-label">Ordenar pacientes:</span>
@@ -216,6 +218,9 @@
             <div class="grid-2">
               <label>Fecha de la sesión
                 <input name="fechaSesion" type="date" required>
+              </label>
+              <label id="field-profesional">Profesional actuante
+                <select name="profesional" id="field-form-profesional"></select>
               </label>
             </div>
           </div>
@@ -685,13 +690,27 @@
   <div id="modal-settings" class="modal-overlay" hidden>
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-settings-title">
       <div class="modal-header">
-        <h3 id="modal-settings-title">⚙️ Mi Perfil Profesional y Firma</h3>
+        <h3 id="modal-settings-title">⚙️ Gestión de Profesionales y Firmas</h3>
         <button type="button" class="modal-close" id="btn-close-settings" aria-label="Cerrar modal">×</button>
       </div>
       <div class="modal-body">
-        <p style="margin-top:0; color:var(--muted); font-size:13px;">
-          Estos datos se imprimirán en el encabezado y en el bloque de firma digital de tus fichas clínicas e informes PDF. Se guardan localmente en tu navegador.
+        <p style="margin-top:0; color:var(--muted); font-size:13px; margin-bottom:12px;">
+          Administra los profesionales que atienden en este equipo. Cada uno cuenta con su nombre, matrícula y firma digital para los informes y PDFs.
         </p>
+
+        <!-- Barra de selección / nuevo profesional -->
+        <div class="prof-modal-toolbar" style="display:flex; justify-content:space-between; align-items:flex-end; gap:10px; margin-bottom:16px; padding:12px; background:var(--sky); border-radius:var(--radius-sm); border:1px solid var(--line);">
+          <div style="flex:1;">
+            <label for="modal-select-professional" style="font-size:12px; font-weight:600; color:var(--muted); display:block; margin-bottom:4px;">
+              Profesional en edición:
+            </label>
+            <select id="modal-select-professional" style="width:100%; padding:6px 10px; border-radius:6px; border:1px solid var(--line); font-size:13px; font-weight:600; background:#fff;"></select>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button type="button" class="btn light btn-sm" id="btn-new-professional">➕ Nuevo</button>
+            <button type="button" class="btn ghost btn-sm text-danger" id="btn-delete-professional" title="Eliminar este profesional">🗑️</button>
+          </div>
+        </div>
 
         <div class="grid-2" style="margin-bottom:12px;">
           <label>Nombre y Apellido
@@ -707,7 +726,7 @@
             <input id="setting-matricula" placeholder="Ej: M.N. 12345 · M.P. 6789">
           </label>
           <label>Nombre del Consultorio / Institución
-            <input id="setting-institucion" placeholder="Ej: Centro Kinésico de ATM">
+            <input id="setting-institucion" placeholder="Ej: Consultorio de ATM y Fisioterapia">
           </label>
         </div>
 

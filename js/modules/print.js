@@ -351,8 +351,8 @@ export function buildSheet(item, sessionUser = null, meta = {}) {
     }
   }
 
-  const profKey = item.profesional || "default";
-  const details = customClinician || CLINICIAN_DETAILS[profKey] || {
+  const profId = item.profesionalId || item.profesional || "";
+  const details = (typeof activeClinicianGetter === "function" ? activeClinicianGetter(profId) : null) || {
     nombre: item.profesionalNombre || "Profesional actuante",
     titulo: "Kinesiólogo/a - Fisioterapeuta",
     matricula: "",
