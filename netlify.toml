@@ -1,0 +1,19 @@
+# Configuración para despliegue en Netlify de Fichas ATM
+
+# Por defecto publica la carpeta "netlify" con la landing page y enlaces de descarga directa
+[build]
+  publish = "netlify"
+
+# Si prefieres desplegar directamente la aplicación clínica web completa,
+# simplemente cambia publish por "."
+# publish = "."
+
+[[redirects]]
+  from = "/descargar"
+  to = "https://github.com/kinesoftware/fichas-atm/archive/refs/heads/main.zip"
+  status = 302
+
+[[redirects]]
+  from = "/repo"
+  to = "https://github.com/kinesoftware/fichas-atm"
+  status = 302

@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fichas ATM · Historias Clínicas Digitales Temporomandibulares (Local-First)</title>
+  <meta name="description" content="Software clínico gratuito, libre y 100% offline para la evaluación, seguimiento y diagnóstico (CDI-TTM) de la articulación temporomandibular.">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --navy: #0f172a;
+      --accent: #10b981;
+      --accent-deep: #059669;
+      --ink: #1e293b;
+      --muted: #64748b;
+      --line: #e2e8f0;
+      --line-strong: #cbd5e1;
+      --sky: #f8fafc;
+      --pill: #f1f5f9;
+      --white: #ffffff;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--ink);
+      background: var(--sky);
+      line-height: 1.6;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* Topbar */
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 19px;
+      color: var(--navy);
+    }
+
+    .brand-icon {
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .brand-badge {
+      font-size: 11px;
+      font-weight: 600;
+      background: #dcfce7;
+      color: #166534;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(22, 101, 52, 0.2);
+    }
+
+    .header-links {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+    }
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      color: #ffffff;
+    }
+    .btn-accent:hover {
+      background: var(--accent-deep);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+    }
+
+    .btn-outline {
+      background: #ffffff;
+      color: var(--navy);
+      border-color: var(--line-strong);
+    }
+    .btn-outline:hover {
+      background: #f1f5f9;
+      border-color: var(--muted);
+    }
+
+    .btn-sm {
+      padding: 6px 14px;
+      font-size: 13px;
+    }
+
+    /* Hero */
+    .hero {
+      max-width: 1040px;
+      margin: 40px auto 30px;
+      padding: 0 24px;
+      text-align: center;
+    }
+
+    .hero-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #eff6ff;
+      color: var(--primary);
+      border: 1px solid #bfdbfe;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-size: 42px;
+      font-weight: 800;
+      color: var(--navy);
+      line-height: 1.2;
+      margin: 0 0 18px;
+      letter-spacing: -0.5px;
+    }
+
+    .hero-lead {
+      font-size: 19px;
+      color: #475569;
+      max-width: 800px;
+      margin: 0 auto 30px;
+      line-height: 1.5;
+    }
+
+    .hero-ctas {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .hero-ctas .btn {
+      padding: 13px 26px;
+      font-size: 16px;
+      border-radius: 10px;
+    }
+
+    .hero-badges {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .hero-badges span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Section Cards */
+    .section {
+      margin: 50px 0;
+    }
+
+    .section-title {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .section-title h2 {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--navy);
+      margin: 0 0 8px;
+    }
+
+    .section-title p {
+      color: var(--muted);
+      font-size: 15px;
+      margin: 0;
+    }
+
+    /* Steps Guide */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 20px;
+    }
+
+    .step-card {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 4px 15px -2px rgba(15, 23, 42, 0.04);
+      position: relative;
+    }
+
+    .step-num {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: #eff6ff;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+      margin-bottom: 14px;
+    }
+
+    .step-card h3 {
+      font-size: 16px;
+      color: var(--navy);
+      margin: 0 0 8px;
+    }
+
+    .step-card p {
+      font-size: 13.5px;
+      color: #475569;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    /* Comparison Box */
+    .compare-card {
+      background: #ffffff;
+      border: 1px solid var(--line-strong);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.06);
+    }
+
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    @media (max-width: 680px) {
+      .compare-grid { grid-template-columns: 1fr; }
+    }
+
+    .compare-col {
+      padding: 30px;
+    }
+
+    .compare-col.cloud {
+      background: #fff1f2;
+      border-right: 1px solid #fecdd3;
+    }
+
+    .compare-col.local {
+      background: #ecfdf5;
+    }
+
+    .compare-col h3 {
+      margin: 0 0 14px;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .compare-col.cloud h3 { color: #9f1239; }
+    .compare-col.local h3 { color: #065f46; }
+
+    .compare-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      font-size: 14px;
+    }
+
+    .compare-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      line-height: 1.45;
+    }
+
+    .compare-col.cloud li { color: #881337; }
+    .compare-col.local li { color: #064e3b; font-weight: 500; }
+
+    /* Features Grid */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 20px;
+    }
+
+    .feature-card {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .feature-icon {
+      font-size: 26px;
+      line-height: 1;
+    }
+
+    .feature-card h3 {
+      margin: 0;
+      font-size: 16px;
+      color: var(--navy);
+    }
+
+    .feature-card p {
+      margin: 0;
+      font-size: 13.5px;
+      color: #475569;
+      line-height: 1.5;
+    }
+
+    /* Download Banner */
+    .download-banner {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #ffffff;
+      border-radius: 20px;
+      padding: 44px 32px;
+      text-align: center;
+      margin: 60px 0;
+      box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.4);
+    }
+
+    .download-banner h2 {
+      font-size: 32px;
+      font-weight: 800;
+      margin: 0 0 12px;
+    }
+
+    .download-banner p {
+      color: #cbd5e1;
+      font-size: 16px;
+      max-width: 640px;
+      margin: 0 auto 28px;
+    }
+
+    .download-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px;
+    }
+
+    .download-actions .btn {
+      padding: 14px 28px;
+      font-size: 16px;
+      border-radius: 10px;
+    }
+
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 40px 24px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--muted);
+      background: #ffffff;
+      margin-top: 60px;
+    }
+
+    .footer p { margin: 6px 0; }
+    .footer a { color: var(--primary); text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <!-- Topbar -->
+  <header class="header">
+    <div class="brand">
+      <span class="brand-icon">🦷</span>
+      <span>Fichas ATM</span>
+      <span class="brand-badge">Local-First</span>
+    </div>
+    <nav class="header-links">
+      <a href="https://github.com/kinesoftware/fichas-atm" target="_blank" rel="noopener" class="btn btn-outline btn-sm">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub
+      </a>
+      <a href="https://github.com/kinesoftware/fichas-atm/archive/refs/heads/main.zip" class="btn btn-primary btn-sm">
+        📥 Descargar ZIP
+      </a>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-pill">
+      🔒 100% Offline · Sin Servidores · Custodia Total de Historias Clínicas
+    </div>
+    <h1>Historias Clínicas de ATM Libres, Seguras y 100% Gratuitas</h1>
+    <p class="hero-lead">
+      El sistema clínico para kinesiólogos y odontólogos que evalúan y tratan la 
+      <strong>Articulación Temporomandibular</strong> con criterios diagnósticos CDI-TTM. 
+      Tus datos se guardan en tu propia computadora, sin suscripciones ni dependencias de internet.
+    </p>
+
+    <div class="hero-ctas">
+      <a href="https://github.com/kinesoftware/fichas-atm/archive/refs/heads/main.zip" class="btn btn-primary">
+        📥 Descargar Gratis (Archivo ZIP)
+      </a>
+      <a href="https://kinesoftware.github.io/fichas-atm/" target="_blank" rel="noopener" class="btn btn-accent">
+        🚀 Probar Aplicación Online
+      </a>
+      <a href="https://github.com/kinesoftware/fichas-atm" target="_blank" rel="noopener" class="btn btn-outline">
+        ⭐ Repositorio de Código Abierto
+      </a>
+    </div>
+
+    <div class="hero-badges">
+      <span>✓ Licencia MIT (Modificá y distribuí libremente)</span>
+      <span>✓ Funciona haciendo doble clic</span>
+      <span>✓ No requiere instalación ni base de datos</span>
+    </div>
+  </section>
+
+  <div class="container">
+
+    <!-- Mini Guía: Cómo Usarlo -->
+    <section class="section">
+      <div class="section-title">
+        <h2>¿Cómo bajarlo y usarlo en 1 minuto?</h2>
+        <p>No necesitas instalar programas complejos ni tener conocimientos técnicos.</p>
+      </div>
+
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-num">1</div>
+          <h3>Descargá el ZIP</h3>
+          <p>Hacé clic en el botón de descarga y guardá el archivo comprimido en tu PC o Mac.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-num">2</div>
+          <h3>Descomprimí la carpeta</h3>
+          <p>Extraé el contenido en tu Escritorio, Documentos o en un Pendrive para llevarlo al consultorio.</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-num">3</div>
+          <h3>Doble clic en index.html</h3>
+          <p>Se abrirá al instante en tu navegador preferido (Chrome, Edge, Safari, Firefox). ¡Sin instalar nada!</p>
+        </div>
+
+        <div class="step-card">
+          <div class="step-num">4</div>
+          <h3>Listo para atender</h3>
+          <p>Cargá pacientes, medí en milímetros, adjuntá fotos y emití informes en PDF con tu firma digital.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Comparativa Local-First vs Nube -->
+    <section class="section">
+      <div class="section-title">
+        <h2>Privacidad Absoluta para tus Pacientes</h2>
+        <p>Por qué la arquitectura Local-First es superior a los sistemas en la nube tradicionales.</p>
+      </div>
+
+      <div class="compare-card">
+        <div class="compare-grid">
+          <div class="compare-col cloud">
+            <h3>❌ Software tradicional en la Nube</h3>
+            <ul class="compare-list">
+              <li>🚫 <strong>Costos recurrentes:</strong> Cobran mensualidades que aumentan con cada paciente.</li>
+              <li>🚫 <strong>Riesgo de filtración:</strong> Los diagnósticos e imágenes viajan a servidores ajenos.</li>
+              <li>🚫 <strong>Dependencia de internet:</strong> Si se corta la conexión, no podés ver tus historias clínicas.</li>
+              <li>🚫 <strong>Retención de datos:</strong> Si dejás de pagar, perdés el acceso a la información de tus pacientes.</li>
+            </ul>
+          </div>
+
+          <div class="compare-col local">
+            <h3>✅ Fichas ATM (Local-First)</h3>
+            <ul class="compare-list">
+              <li>🛡️ <strong>100% Gratuito y Libre:</strong> Sin suscripciones ni letras chicas de por vida.</li>
+              <li>🛡️ <strong>Privacidad por diseño:</strong> Toda la información reside en la memoria local de tu equipo (IndexedDB).</li>
+              <li>🛡️ <strong>Funciona 100% offline:</strong> Llevá tu laptop o pendrive y atendé en cualquier lugar sin conexión.</li>
+              <li>🛡️ <strong>Custodia total:</strong> Cumplís automáticamente con las leyes de secreto médico y confidencialidad.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Características Principales -->
+    <section class="section">
+      <div class="section-title">
+        <h2>Todo lo que necesitás para tu práctica clínica</h2>
+        <p>Diseñado específicamente para la evaluación y evolución de trastornos de la ATM.</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <span class="feature-icon">📋</span>
+          <h3>Evaluación en 6 Pasos (CDI-TTM)</h3>
+          <p>Filiación, hábitos parafuncionales (bruxismo/apretamiento), palpación muscular, ruidos articulares y clasificación diagnóstica oficial.</p>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-icon">👥</span>
+          <h3>Multi-Profesional con Firma Digital</h3>
+          <p>Compartí la misma computadora con varios colegas. Cada uno cuenta con su matrícula, logo y firma digital con limpiador automático de fondo blanco.</p>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-icon">📊</span>
+          <h3>Comparador Sesión a Sesión</h3>
+          <p>Compará dos consultas de un paciente y mirá automáticamente qué cambió en dolor (EVA 0–10), apertura bucal y remisión de síntomas.</p>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-icon">📄</span>
+          <h3>Informes en PDF y A4</h3>
+          <p>Emití al instante hojas clínicas completas con membrete institucional listas para imprimir o enviar al paciente o médico derivante.</p>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-icon">💾</span>
+          <h3>Exportación Granular (JSON)</h3>
+          <p>Descargá de a una sola ficha, el historial completo de un paciente, fichas seleccionadas en lote o una copia de respaldo completa.</p>
+        </div>
+
+        <div class="feature-card">
+          <span class="feature-icon">📷</span>
+          <h3>Registro Fotográfico Local</h3>
+          <p>Adjuntá fotos de apertura y oclusión que se comprimen automáticamente en el navegador sin subirse a la red.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Banner de Descarga -->
+    <section class="download-banner">
+      <h2>Comenzá a usarlo hoy en tu consultorio</h2>
+      <p>
+        Descargá el proyecto completo, probalo en tu computadora o llevalo en un pendrive. 
+        Modificalo y compartilo con tus colegas sin ningún tipo de límite.
+      </p>
+      <div class="download-actions">
+        <a href="https://github.com/kinesoftware/fichas-atm/archive/refs/heads/main.zip" class="btn btn-accent">
+          📥 Descargar ZIP Completo
+        </a>
+        <a href="https://kinesoftware.github.io/fichas-atm/" target="_blank" rel="noopener" class="btn btn-outline" style="background:#ffffff; color:#0f172a;">
+          🚀 Usar Versión Online
+        </a>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p><strong>Fichas ATM</strong> · Software Libre de Historia Clínica Digital Temporomandibular</p>
+      <p>Distribuido bajo licencia de código abierto <strong>MIT</strong> · Podés usarlo, modificarlo y redistribuirlo con total libertad.</p>
+      <p style="margin-top:14px;">
+        Contacto y Sugerencias: <a href="mailto:fichas.atm@gmail.com">fichas.atm@gmail.com</a> · 
+        Repositorio oficial: <a href="https://github.com/kinesoftware/fichas-atm" target="_blank" rel="noopener">github.com/kinesoftware/fichas-atm</a>
+      </p>
+      <p style="font-size:11.5px; color:#94a3b8; margin-top:12px;">
+        Descargo de responsabilidad: Esta herramienta es un soporte auxiliar para profesionales de la salud capacitados y no sustituye el juicio ni diagnóstico médico presencial.
+      </p>
+    </div>
+  </footer>
+
+</body>
+</html>
