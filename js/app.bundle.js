@@ -1086,6 +1086,67 @@
       req.onerror = () => reject(req.error || new Error("Error al obtener la configuraci\xF3n"));
     });
   }
+  function sanitizeFilename(str) {
+    return String(str || "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9_-]/g, "_").replace(/_+/g, "_").slice(0, 40) || "ficha";
+  }
+  function downloadJsonFile(filename, data) {
+    const jsonString = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  async function exportSingleFicha(ficha) {
+    if (!ficha) return;
+    const nameSlug = sanitizeFilename(ficha.nombre || "paciente");
+    const dateStr = ficha.fechaSesion ? ficha.fechaSesion.slice(0, 10) : (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+    const filename = `ficha-atm_${nameSlug}_${dateStr}.json`;
+    const payload = {
+      app: "Fichas-ATM",
+      tipo: "ficha_individual",
+      version: 1,
+      exportedAt: (/* @__PURE__ */ new Date()).toISOString(),
+      paciente: ficha.nombre || "Sin nombre",
+      totalFichas: 1,
+      fichas: [ficha],
+      ...ficha
+    };
+    downloadJsonFile(filename, payload);
+  }
+  async function exportPatientFichas(patientName, sessions) {
+    if (!Array.isArray(sessions) || !sessions.length) return;
+    const nameSlug = sanitizeFilename(patientName || sessions[0]?.nombre || "paciente");
+    const filename = `fichas-atm_${nameSlug}_${sessions.length}_sesiones.json`;
+    const payload = {
+      app: "Fichas-ATM",
+      tipo: "paciente",
+      version: 1,
+      exportedAt: (/* @__PURE__ */ new Date()).toISOString(),
+      paciente: patientName || sessions[0]?.nombre || "Sin nombre",
+      totalFichas: sessions.length,
+      fichas: sessions
+    };
+    downloadJsonFile(filename, payload);
+  }
+  async function exportGroupFichas(fichas, label = "seleccion") {
+    if (!Array.isArray(fichas) || !fichas.length) return;
+    const dateStr = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+    const filename = `fichas-atm_${sanitizeFilename(label)}_${fichas.length}_fichas_${dateStr}.json`;
+    const payload = {
+      app: "Fichas-ATM",
+      tipo: "grupo_fichas",
+      version: 1,
+      exportedAt: (/* @__PURE__ */ new Date()).toISOString(),
+      totalFichas: fichas.length,
+      fichas
+    };
+    downloadJsonFile(filename, payload);
+  }
   async function exportBackup() {
     const [fichas, clinician] = await Promise.all([
       listFichas(),
@@ -1093,23 +1154,15 @@
     ]);
     const payload = {
       app: "Fichas-ATM",
+      tipo: "respaldo_completo",
       version: 1,
       exportedAt: (/* @__PURE__ */ new Date()).toISOString(),
       clinician,
       totalFichas: fichas.length,
       fichas
     };
-    const jsonString = JSON.stringify(payload, null, 2);
-    const blob = new Blob([jsonString], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
     const dateStr = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `backup-fichas-atm-${dateStr}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    downloadJsonFile(`backup-fichas-atm-${dateStr}.json`, payload);
   }
   async function importBackup(source) {
     let content = "";
@@ -1126,6 +1179,8 @@
       rawFichas = parsed;
     } else if (parsed && Array.isArray(parsed.fichas)) {
       rawFichas = parsed.fichas;
+    } else if (parsed && typeof parsed === "object" && (parsed.paciente || parsed.nombre || parsed.id || parsed.fechaSesion)) {
+      rawFichas = [parsed];
     } else {
       throw new Error("El archivo no tiene un formato v\xE1lido de fichas de ATM");
     }
@@ -2432,6 +2487,17 @@
     if (btnPrev) {
       btnPrev.addEventListener("click", () => showStep(Math.max(0, step - 1)));
     }
+    const btnFormExportJson = document.querySelector("#btn-form-export-json");
+    if (btnFormExportJson) {
+      btnFormExportJson.addEventListener("click", async () => {
+        const data = readForm();
+        if (!data.nombre && !data.dni) {
+          await dialogAlert("Completa al menos el nombre o DNI del paciente antes de exportar.");
+          return;
+        }
+        await exportSingleFicha(data);
+      });
+    }
     if (btnNext) {
       btnNext.addEventListener("click", async () => {
         const data = readForm();
@@ -2514,6 +2580,7 @@
     isGrouped: () => false,
     getSearchValue: () => "",
     getExpandedPatients: () => /* @__PURE__ */ new Set(),
+    getSelectedIds: () => /* @__PURE__ */ new Set(),
     renderLibrary: () => {
     }
   };
@@ -2522,9 +2589,25 @@
   }
   function sessionRow(item, patient, callbacks = {}, sessionIndex = 1, totalSessions = 1) {
     const row = document.createElement("div");
-    row.className = "session-row";
+    const isSelected = rowsCtx.getSelectedIds().has(item.id);
+    row.className = `session-row ${isSelected ? "is-selected" : ""}`;
     const isInitial = sessionIndex === 1;
     const label = isInitial ? "Evaluaci\xF3n inicial" : `Sesi\xF3n N\xB0 ${sessionIndex}`;
+    const checkWrap = document.createElement("label");
+    checkWrap.className = "session-check-wrap";
+    checkWrap.title = "Seleccionar ficha para exportar en grupo";
+    checkWrap.onclick = (e) => e.stopPropagation();
+    const check = document.createElement("input");
+    check.type = "checkbox";
+    check.className = "session-check";
+    check.checked = isSelected;
+    check.addEventListener("change", (e) => {
+      e.stopPropagation();
+      if (callbacks.onToggleSelect) {
+        callbacks.onToggleSelect(item.id, check.checked);
+      }
+    });
+    checkWrap.appendChild(check);
     let evaBadgeHtml = "";
     if (item.eva !== void 0 && item.eva !== null && String(item.eva).trim() !== "") {
       const val = Number(item.eva);
@@ -2569,6 +2652,15 @@
     <div class="session-actions"></div>
   `;
     const actions = row.querySelector(".session-actions");
+    const jsonBtn = document.createElement("button");
+    jsonBtn.type = "button";
+    jsonBtn.className = "btn light btn-sm";
+    jsonBtn.textContent = "JSON";
+    jsonBtn.title = `Exportar ficha de esta sesi\xF3n (${formatDate(item.fechaSesion)}) en formato JSON`;
+    jsonBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (callbacks.onExportSingle) callbacks.onExportSingle(item);
+    });
     const pdfBtn = document.createElement("button");
     pdfBtn.type = "button";
     pdfBtn.className = "btn green";
@@ -2578,11 +2670,6 @@
       e.stopPropagation();
       if (callbacks.onPdf) callbacks.onPdf(item);
     });
-    const jsonBtn = document.createElement("button");
-    jsonBtn.type = "button";
-    jsonBtn.className = "btn ghost";
-    jsonBtn.textContent = "JSON";
-    jsonBtn.hidden = true;
     const delBtn = document.createElement("button");
     delBtn.type = "button";
     delBtn.className = "btn ghost btn-icon-del";
@@ -2601,9 +2688,10 @@
       if (!ok) return;
       if (callbacks.onDelete) callbacks.onDelete(item);
     });
-    actions.append(pdfBtn, delBtn);
+    actions.append(jsonBtn, pdfBtn, delBtn);
+    row.prepend(checkWrap);
     row.addEventListener("click", (e) => {
-      if (e.target.closest("button")) return;
+      if (e.target.closest("button") || e.target.closest("label")) return;
       if (callbacks.onOpen) callbacks.onOpen(item);
     });
     return row;
@@ -2613,20 +2701,39 @@
     const isMulti = sessions.length > 1 || rowsCtx.isGrouped();
     const isSearchActive = String(rowsCtx.getSearchValue() || "").trim().length > 0;
     const isExpanded = rowsCtx.getExpandedPatients().has(key) || isSearchActive && isMulti;
+    const selectedIds = rowsCtx.getSelectedIds();
+    const allSelected = sessions.length > 0 && sessions.every((s) => selectedIds.has(s.id));
+    const someSelected = sessions.some((s) => selectedIds.has(s.id));
     const card = document.createElement("article");
-    card.className = `patient-card ${isExpanded ? "is-expanded" : ""}`;
+    card.className = `patient-card ${isExpanded ? "is-expanded" : ""} ${allSelected ? "is-selected" : ""}`;
     const header = document.createElement("div");
     header.className = "patient-header";
     const titleGroup = document.createElement("div");
     titleGroup.className = "patient-title-group";
     const titleRow = document.createElement("div");
     titleRow.className = "patient-title-row";
+    const patientCheckWrap = document.createElement("label");
+    patientCheckWrap.className = "patient-check-wrap";
+    patientCheckWrap.title = "Seleccionar todas las sesiones de este paciente para exportar en grupo";
+    patientCheckWrap.onclick = (e) => e.stopPropagation();
+    const patientCheck = document.createElement("input");
+    patientCheck.type = "checkbox";
+    patientCheck.className = "patient-check";
+    patientCheck.checked = allSelected;
+    patientCheck.indeterminate = !allSelected && someSelected;
+    patientCheck.addEventListener("change", (e) => {
+      e.stopPropagation();
+      if (callbacks.onToggleSelectGroup) {
+        callbacks.onToggleSelectGroup(sessions.map((s) => s.id), patientCheck.checked);
+      }
+    });
+    patientCheckWrap.appendChild(patientCheck);
     const nameEl = document.createElement("h3");
     nameEl.textContent = latest.nombre || "Sin nombre";
     const sessBadge = document.createElement("span");
     sessBadge.className = "patient-badge";
     sessBadge.textContent = sessions.length === 1 ? "1 sesi\xF3n" : `${sessions.length} sesiones`;
-    titleRow.append(nameEl, sessBadge);
+    titleRow.append(patientCheckWrap, nameEl, sessBadge);
     const calcAge = latest.edad || ageOn(latest.nacimiento, latest.fechaSesion);
     if (calcAge) {
       const ageBadge = document.createElement("span");
@@ -2683,6 +2790,16 @@
       }
     });
     controls.append(printGroup);
+    const exportPatientBtn = document.createElement("button");
+    exportPatientBtn.type = "button";
+    exportPatientBtn.className = "btn light";
+    exportPatientBtn.textContent = isMulti ? "JSON (todas)" : "JSON";
+    exportPatientBtn.title = isMulti ? `Descargar las ${sessions.length} sesiones de ${latest.nombre || "este paciente"} en un archivo JSON` : `Descargar la ficha de ${latest.nombre || "este paciente"} en un archivo JSON`;
+    exportPatientBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (callbacks.onExportPatient) callbacks.onExportPatient(latest.nombre || "paciente", sessions);
+    });
+    controls.append(exportPatientBtn);
     if (sessions.length >= 2 && callbacks.onCompare) {
       const comp = document.createElement("button");
       comp.type = "button";
@@ -2723,7 +2840,7 @@
     controls.append(del);
     header.append(titleGroup, controls);
     header.addEventListener("click", (event) => {
-      if (event.target.closest("button")) return;
+      if (event.target.closest("button") || event.target.closest("label") || event.target.closest("input")) return;
       if (!isMulti) {
         if (callbacks.onOpen) callbacks.onOpen(latest);
       } else {
@@ -2772,6 +2889,7 @@
   var activeFilterProf = "todos";
   var mineDefaultApplied = false;
   var expandedPatients = /* @__PURE__ */ new Set();
+  var selectedFichaIds = /* @__PURE__ */ new Set();
   var patientSortMode = "name";
   try {
     const s = localStorage.getItem("fichas_atm_patient_sort");
@@ -2785,6 +2903,7 @@
     isGrouped: () => grouped,
     getSearchValue: () => searchInput?.value || "",
     getExpandedPatients: () => expandedPatients,
+    getSelectedIds: () => selectedFichaIds,
     renderLibrary: () => renderLibrary()
   });
   var activeUpsert = null;
@@ -2952,16 +3071,123 @@
     mineButton.setAttribute("aria-pressed", String(onlyMine));
     mineButton.classList.toggle("is-active", onlyMine);
   }
-  function downloadJSON(data, todayStr = "", fileStem = "") {
-    const isArray = Array.isArray(data);
-    const rawName = fileStem || (isArray ? "fichas-atm" : `ficha-${data.nombre || "paciente"}`);
-    const safeName = rawName.replace(/[^a-zA-Z0-9_\u00C0-\u017F-]/g, "_").replace(/_+/g, "_");
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `${safeName}-${todayStr || (/* @__PURE__ */ new Date()).toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(a.href);
+  function updateSelectionUI() {
+    const bar = document.querySelector("#selection-bar");
+    const countEl = document.querySelector("#selection-bar-count");
+    const radioSelected = document.querySelector("#export-radio-selected");
+    const lblSelected = document.querySelector("#export-lbl-selected");
+    const count = selectedFichaIds.size;
+    if (bar) {
+      bar.hidden = count === 0;
+    }
+    if (countEl) {
+      countEl.textContent = count === 1 ? "1 ficha seleccionada" : `${count} fichas seleccionadas`;
+    }
+    if (radioSelected && lblSelected) {
+      radioSelected.disabled = count === 0;
+      lblSelected.textContent = count > 0 ? `Exportar las ${count} fichas marcadas con casillas de verificaci\xF3n.` : "No hay fichas seleccionadas actualmente (marca las casillas en la lista).";
+    }
+  }
+  function openExportModal() {
+    const modal = document.querySelector("#modal-export");
+    if (!modal) return;
+    const all = loadAll();
+    const selectPatient = document.querySelector("#export-select-patient");
+    const selectProf = document.querySelector("#export-select-prof");
+    const lblAll = document.querySelector("#export-lbl-all");
+    if (lblAll) {
+      lblAll.textContent = `Todas las fichas registradas (${all.length} fichas) y datos del consultorio.`;
+    }
+    if (selectPatient) {
+      selectPatient.innerHTML = "";
+      const seen = /* @__PURE__ */ new Map();
+      for (const f of all) {
+        const k = patientKey(f);
+        if (!seen.has(k)) seen.set(k, { nombre: f.nombre || "Sin nombre", dni: f.dni || "\u2014" });
+      }
+      for (const [k, p] of seen.entries()) {
+        const opt = document.createElement("option");
+        opt.value = k;
+        opt.textContent = `${p.nombre} (DNI ${p.dni})`;
+        selectPatient.appendChild(opt);
+      }
+    }
+    if (selectProf) {
+      selectProf.innerHTML = "";
+      const seenProf = /* @__PURE__ */ new Map();
+      for (const f of all) {
+        const profId = f.profesionalId || f.profesional || "default";
+        const profName = f.profesionalNombre || (f.profesional && f.profesional !== "default" ? f.profesional : "Profesional Principal");
+        if (!seenProf.has(profId)) seenProf.set(profId, profName);
+      }
+      for (const [id, name] of seenProf.entries()) {
+        const opt = document.createElement("option");
+        opt.value = id;
+        opt.textContent = name;
+        selectProf.appendChild(opt);
+      }
+    }
+    updateSelectionUI();
+    modal.hidden = false;
+  }
+  function initExportModal() {
+    const modal = document.querySelector("#modal-export");
+    const btnClose = document.querySelector("#btn-close-export");
+    const btnCancel = document.querySelector("#btn-cancel-export");
+    const btnConfirm = document.querySelector("#btn-confirm-export");
+    const closeFn = () => {
+      if (modal) modal.hidden = true;
+    };
+    if (btnClose) btnClose.addEventListener("click", closeFn);
+    if (btnCancel) btnCancel.addEventListener("click", closeFn);
+    if (modal) {
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) closeFn();
+      });
+    }
+    if (btnConfirm) {
+      btnConfirm.addEventListener("click", async () => {
+        const selectedScope = document.querySelector('input[name="export-scope"]:checked')?.value || "all";
+        const all = loadAll();
+        if (!all.length) {
+          dialogAlert("No hay fichas registradas para exportar.");
+          return;
+        }
+        try {
+          if (selectedScope === "all") {
+            await exportBackup();
+          } else if (selectedScope === "patient") {
+            const selKey = document.querySelector("#export-select-patient")?.value;
+            const patientSessions = all.filter((f) => patientKey(f) === selKey);
+            if (!patientSessions.length) {
+              dialogAlert("No se encontraron sesiones para el paciente seleccionado.");
+              return;
+            }
+            const pName = patientSessions[0]?.nombre || "paciente";
+            await exportPatientFichas(pName, patientSessions);
+          } else if (selectedScope === "prof") {
+            const selProf = document.querySelector("#export-select-prof")?.value;
+            const profSessions = all.filter((f) => (f.profesionalId || f.profesional || "default") === selProf);
+            if (!profSessions.length) {
+              dialogAlert("No se encontraron fichas para el profesional seleccionado.");
+              return;
+            }
+            const profName = profSessions[0]?.profesionalNombre || "profesional";
+            await exportGroupFichas(profSessions, `profesional_${profName}`);
+          } else if (selectedScope === "selected") {
+            const selected = all.filter((f) => selectedFichaIds.has(f.id));
+            if (!selected.length) {
+              dialogAlert("No hay fichas seleccionadas en la lista.");
+              return;
+            }
+            await exportGroupFichas(selected, "seleccion");
+          }
+          closeFn();
+        } catch (err) {
+          dialogAlert("Error al exportar: " + (err.message || err));
+        }
+      });
+    }
   }
   function renderLibrary() {
     if (!listEl) return;
@@ -3096,13 +3322,72 @@
       onDelete: onDeleteFicha,
       onDeleteBatch: onDeleteBatchFichas,
       onCompare: onComparePatient,
-      onDownloadJson: (item) => downloadJSON(item, todayStr),
+      onToggleSelect: (id, isChecked) => {
+        if (isChecked) {
+          selectedFichaIds.add(id);
+        } else {
+          selectedFichaIds.delete(id);
+        }
+        updateSelectionUI();
+        renderLibrary();
+      },
+      onToggleSelectGroup: (ids, isChecked) => {
+        for (const id of ids) {
+          if (isChecked) {
+            selectedFichaIds.add(id);
+          } else {
+            selectedFichaIds.delete(id);
+          }
+        }
+        updateSelectionUI();
+        renderLibrary();
+      },
+      onExportSingle: async (item) => {
+        await exportSingleFicha(item);
+      },
+      onExportPatient: async (patientName, sessions) => {
+        await exportPatientFichas(patientName, sessions);
+      },
+      onDownloadJson: (item) => exportSingleFicha(item),
       onDownloadJsonAll: (items) => {
-        const stem = `fichas-${(items[0]?.nombre || "paciente").replace(/\s+/g, "_")}`;
-        downloadJSON(items, todayStr, stem);
+        const stem = items[0]?.nombre || "paciente";
+        exportPatientFichas(stem, items);
       },
       todayStr
     };
+    const btnExportSelected = document.querySelector("#btn-export-selected");
+    if (btnExportSelected) {
+      btnExportSelected.addEventListener("click", async () => {
+        const all = loadAll();
+        const selected = all.filter((f) => selectedFichaIds.has(f.id));
+        if (!selected.length) {
+          dialogAlert("No hay fichas seleccionadas.");
+          return;
+        }
+        await exportGroupFichas(selected, "seleccion");
+      });
+    }
+    const btnClearSelection = document.querySelector("#btn-clear-selection");
+    if (btnClearSelection) {
+      btnClearSelection.addEventListener("click", () => {
+        selectedFichaIds.clear();
+        updateSelectionUI();
+        renderLibrary();
+      });
+    }
+    const btnSelectAllVisible = document.querySelector("#btn-select-all-visible");
+    if (btnSelectAllVisible) {
+      btnSelectAllVisible.addEventListener("click", () => {
+        const sessionUser = typeof activeSessionUserGetter2 === "function" ? activeSessionUserGetter2() : null;
+        const items = visibleFichas(sessionUser);
+        for (const item of items) {
+          selectedFichaIds.add(item.id);
+        }
+        updateSelectionUI();
+        renderLibrary();
+      });
+    }
+    initExportModal();
     if (searchInput) {
       searchInput.addEventListener("input", debounce(() => {
         page = 0;
@@ -3179,7 +3464,7 @@
     if (btnSeed) {
       btnSeed.addEventListener("click", async () => {
         const sessionUser = typeof activeSessionUserGetter2 === "function" ? activeSessionUserGetter2() : null;
-        if (sessionUser && sessionUser.role !== "admin" && sessionUser.username !== "martin") return;
+        if (sessionUser && sessionUser.role && sessionUser.role !== "admin") return;
         if (!await dialogConfirm("\xBFAgregar 20 fichas de prueba?")) return;
         btnSeed.disabled = true;
         try {
@@ -3206,13 +3491,7 @@
     }
     if (btnExport) {
       btnExport.addEventListener("click", () => {
-        const sessionUser = typeof activeSessionUserGetter2 === "function" ? activeSessionUserGetter2() : null;
-        const items = visibleFichas(sessionUser);
-        if (!items.length) {
-          dialogAlert("No hay fichas para exportar.");
-          return;
-        }
-        downloadJSON(items.length === 1 ? items[0] : items, todayStr);
+        openExportModal();
       });
     }
     const fileOpen = document.querySelector("#file-open");
@@ -3236,12 +3515,13 @@
           dialogAlert("El archivo no es una ficha.");
           return;
         }
+        let raw = [];
         if (Array.isArray(parsed)) {
-          const raw = parsed.filter((item) => item && typeof item === "object" && !Array.isArray(item));
-          if (!raw.length) {
-            dialogAlert("El archivo no tiene fichas.");
-            return;
-          }
+          raw = parsed.filter((item) => item && typeof item === "object" && !Array.isArray(item));
+        } else if (parsed && Array.isArray(parsed.fichas)) {
+          raw = parsed.fichas.filter((item) => item && typeof item === "object");
+        }
+        if (raw.length > 0) {
           const fichas = planImport(raw);
           const already = fichas.filter((item) => cache.some((ficha) => ficha.id === item.id)).length;
           const fileBtn = fileOpen.closest("label");
@@ -4605,16 +4885,14 @@
       updateLibraryProfFilter(getProfessionals());
       const btnBackupExport = document.querySelector("#btn-backup-export");
       if (btnBackupExport) {
-        btnBackupExport.addEventListener("click", async () => {
-          const fichas = loadAll();
-          if (!fichas.length) {
-            dialogAlert("A\xFAn no tienes fichas guardadas para respaldar.");
-            return;
-          }
-          await exportBackup();
+        btnBackupExport.addEventListener("click", () => {
+          openExportModal();
         });
       }
       window.FichasATM = {
+        openExportModal: () => {
+          openExportModal();
+        },
         openSettings: () => {
           const modal = document.querySelector("#modal-settings");
           if (modal) modal.hidden = false;
@@ -4632,12 +4910,7 @@
           if (modal) modal.hidden = true;
         },
         exportBackup: async () => {
-          const fichas = loadAll();
-          if (!fichas.length) {
-            dialogAlert("A\xFAn no tienes fichas guardadas para respaldar.");
-            return;
-          }
-          await exportBackup();
+          openExportModal();
         },
         newSession: () => {
           fillForm(blank(), loadAll());

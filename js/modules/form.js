@@ -22,6 +22,7 @@ import {
 import { dialogAlert, dialogConfirm } from "./dom.js";
 import { compressImage, blobToDataURL } from "./form-image.js";
 import { setupInputRestrictions } from "./form-restrictions.js";
+import { exportSingleFicha } from "../storage/db.js";
 
 const form = document.querySelector("#ficha");
 const formView = document.querySelector("#view-form");
@@ -1104,6 +1105,18 @@ export function initForm({ onSave, onBack, onCompare, onPrint, getSessionUser })
 
   if (btnPrev) {
     btnPrev.addEventListener("click", () => showStep(Math.max(0, step - 1)));
+  }
+
+  const btnFormExportJson = document.querySelector("#btn-form-export-json");
+  if (btnFormExportJson) {
+    btnFormExportJson.addEventListener("click", async () => {
+      const data = readForm();
+      if (!data.nombre && !data.dni) {
+        await dialogAlert("Completa al menos el nombre o DNI del paciente antes de exportar.");
+        return;
+      }
+      await exportSingleFicha(data);
+    });
   }
 
   if (btnNext) {

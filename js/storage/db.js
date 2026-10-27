@@ -281,6 +281,94 @@ export async function getSetting(key, defaultValue = null) {
   });
 }
 
+export function sanitizeFilename(str) {
+  return String(str || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9_-]/g, "_")
+    .replace(/_+/g, "_")
+    .slice(0, 40) || "ficha";
+}
+
+export function downloadJsonFile(filename, data) {
+  const jsonString = JSON.stringify(data, null, 2);
+  const blob = new Blob([jsonString], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Exporta una sola ficha clínica individual en archivo JSON.
+ */
+export async function exportSingleFicha(ficha) {
+  if (!ficha) return;
+  const nameSlug = sanitizeFilename(ficha.nombre || "paciente");
+  const dateStr = ficha.fechaSesion ? ficha.fechaSesion.slice(0, 10) : new Date().toISOString().slice(0, 10);
+  const filename = `ficha-atm_${nameSlug}_${dateStr}.json`;
+
+  const payload = {
+    app: "Fichas-ATM",
+    tipo: "ficha_individual",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    paciente: ficha.nombre || "Sin nombre",
+    totalFichas: 1,
+    fichas: [ficha],
+    ...ficha,
+  };
+
+  downloadJsonFile(filename, payload);
+}
+
+/**
+ * Exporta todas las fichas de un paciente específico en archivo JSON.
+ */
+export async function exportPatientFichas(patientName, sessions) {
+  if (!Array.isArray(sessions) || !sessions.length) return;
+  const nameSlug = sanitizeFilename(patientName || sessions[0]?.nombre || "paciente");
+  const filename = `fichas-atm_${nameSlug}_${sessions.length}_sesiones.json`;
+
+  const payload = {
+    app: "Fichas-ATM",
+    tipo: "paciente",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    paciente: patientName || sessions[0]?.nombre || "Sin nombre",
+    totalFichas: sessions.length,
+    fichas: sessions,
+  };
+
+  downloadJsonFile(filename, payload);
+}
+
+/**
+ * Exporta un grupo de fichas seleccionadas o filtradas en archivo JSON.
+ */
+export async function exportGroupFichas(fichas, label = "seleccion") {
+  if (!Array.isArray(fichas) || !fichas.length) return;
+  const dateStr = new Date().toISOString().slice(0, 10);
+  const filename = `fichas-atm_${sanitizeFilename(label)}_${fichas.length}_fichas_${dateStr}.json`;
+
+  const payload = {
+    app: "Fichas-ATM",
+    tipo: "grupo_fichas",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    totalFichas: fichas.length,
+    fichas,
+  };
+
+  downloadJsonFile(filename, payload);
+}
+
 /**
  * Exporta un respaldo íntegro en archivo JSON descargable con todas las fichas y datos del profesional.
  */
@@ -292,6 +380,7 @@ export async function exportBackup() {
 
   const payload = {
     app: "Fichas-ATM",
+    tipo: "respaldo_completo",
     version: 1,
     exportedAt: new Date().toISOString(),
     clinician,
@@ -299,18 +388,8 @@ export async function exportBackup() {
     fichas,
   };
 
-  const jsonString = JSON.stringify(payload, null, 2);
-  const blob = new Blob([jsonString], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
   const dateStr = new Date().toISOString().slice(0, 10);
-
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `backup-fichas-atm-${dateStr}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  downloadJsonFile(`backup-fichas-atm-${dateStr}.json`, payload);
 }
 
 /**
@@ -335,6 +414,8 @@ export async function importBackup(source) {
     rawFichas = parsed;
   } else if (parsed && Array.isArray(parsed.fichas)) {
     rawFichas = parsed.fichas;
+  } else if (parsed && typeof parsed === "object" && (parsed.paciente || parsed.nombre || parsed.id || parsed.fechaSesion)) {
+    rawFichas = [parsed];
   } else {
     throw new Error("El archivo no tiene un formato válido de fichas de ATM");
   }

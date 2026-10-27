@@ -39,6 +39,7 @@ import {
   setCache,
   loadAll,
   updateLibraryProfFilter,
+  openExportModal,
 } from "./modules/library.js";
 
 import {
@@ -199,21 +200,19 @@ async function initApp() {
     syncFormProfessionals(getProfessionals(), getActiveProfessional().id);
     updateLibraryProfFilter(getProfessionals());
 
-    // 6. Botones de Respaldo Global (Backup JSON)
+    // 6. Botones de Respaldo y Exportación
     const btnBackupExport = document.querySelector("#btn-backup-export");
     if (btnBackupExport) {
-      btnBackupExport.addEventListener("click", async () => {
-        const fichas = loadAll();
-        if (!fichas.length) {
-          dialogAlert("Aún no tienes fichas guardadas para respaldar.");
-          return;
-        }
-        await exportBackup();
+      btnBackupExport.addEventListener("click", () => {
+        openExportModal();
       });
     }
 
     // Exponer API global para eventos seguros y llamadas directas
     window.FichasATM = {
+      openExportModal: () => {
+        openExportModal();
+      },
       openSettings: () => {
         const modal = document.querySelector("#modal-settings");
         if (modal) modal.hidden = false;
@@ -231,12 +230,7 @@ async function initApp() {
         if (modal) modal.hidden = true;
       },
       exportBackup: async () => {
-        const fichas = loadAll();
-        if (!fichas.length) {
-          dialogAlert("Aún no tienes fichas guardadas para respaldar.");
-          return;
-        }
-        await exportBackup();
+        openExportModal();
       },
       newSession: () => {
         fillForm(blank(), loadAll());

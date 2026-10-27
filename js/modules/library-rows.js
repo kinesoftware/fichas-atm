@@ -16,6 +16,7 @@ let rowsCtx = {
   isGrouped: () => false,
   getSearchValue: () => "",
   getExpandedPatients: () => new Set(),
+  getSelectedIds: () => new Set(),
   renderLibrary: () => {},
 };
 
@@ -25,10 +26,29 @@ export function setRowsContext(next) {
 
 export function sessionRow(item, patient, callbacks = {}, sessionIndex = 1, totalSessions = 1) {
   const row = document.createElement("div");
-  row.className = "session-row";
+  const isSelected = rowsCtx.getSelectedIds().has(item.id);
+  row.className = `session-row ${isSelected ? "is-selected" : ""}`;
 
   const isInitial = sessionIndex === 1;
   const label = isInitial ? "Evaluación inicial" : `Sesión N° ${sessionIndex}`;
+
+  // Checkbox de selección para exportar en grupo
+  const checkWrap = document.createElement("label");
+  checkWrap.className = "session-check-wrap";
+  checkWrap.title = "Seleccionar ficha para exportar en grupo";
+  checkWrap.onclick = (e) => e.stopPropagation();
+
+  const check = document.createElement("input");
+  check.type = "checkbox";
+  check.className = "session-check";
+  check.checked = isSelected;
+  check.addEventListener("change", (e) => {
+    e.stopPropagation();
+    if (callbacks.onToggleSelect) {
+      callbacks.onToggleSelect(item.id, check.checked);
+    }
+  });
+  checkWrap.appendChild(check);
 
   // Indicador EVA de dolor
   let evaBadgeHtml = "";
@@ -92,6 +112,16 @@ export function sessionRow(item, patient, callbacks = {}, sessionIndex = 1, tota
 
   const actions = row.querySelector(".session-actions");
 
+  const jsonBtn = document.createElement("button");
+  jsonBtn.type = "button";
+  jsonBtn.className = "btn light btn-sm";
+  jsonBtn.textContent = "JSON";
+  jsonBtn.title = `Exportar ficha de esta sesión (${formatDate(item.fechaSesion)}) en formato JSON`;
+  jsonBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (callbacks.onExportSingle) callbacks.onExportSingle(item);
+  });
+
   const pdfBtn = document.createElement("button");
   pdfBtn.type = "button";
   pdfBtn.className = "btn green";
@@ -101,12 +131,6 @@ export function sessionRow(item, patient, callbacks = {}, sessionIndex = 1, tota
     e.stopPropagation();
     if (callbacks.onPdf) callbacks.onPdf(item);
   });
-
-  const jsonBtn = document.createElement("button");
-  jsonBtn.type = "button";
-  jsonBtn.className = "btn ghost";
-  jsonBtn.textContent = "JSON";
-  jsonBtn.hidden = true;
 
   const delBtn = document.createElement("button");
   delBtn.type = "button";
@@ -127,10 +151,12 @@ export function sessionRow(item, patient, callbacks = {}, sessionIndex = 1, tota
     if (callbacks.onDelete) callbacks.onDelete(item);
   });
 
-  actions.append(pdfBtn, delBtn);
+  actions.append(jsonBtn, pdfBtn, delBtn);
+
+  row.prepend(checkWrap);
 
   row.addEventListener("click", (e) => {
-    if (e.target.closest("button")) return;
+    if (e.target.closest("button") || e.target.closest("label")) return;
     if (callbacks.onOpen) callbacks.onOpen(item);
   });
 
@@ -150,9 +176,12 @@ export function patientGroupRow(key, sessions, callbacks = {}) {
   const isMulti = sessions.length > 1 || rowsCtx.isGrouped();
   const isSearchActive = String(rowsCtx.getSearchValue() || "").trim().length > 0;
   const isExpanded = rowsCtx.getExpandedPatients().has(key) || (isSearchActive && isMulti);
+  const selectedIds = rowsCtx.getSelectedIds();
+  const allSelected = sessions.length > 0 && sessions.every((s) => selectedIds.has(s.id));
+  const someSelected = sessions.some((s) => selectedIds.has(s.id));
 
   const card = document.createElement("article");
-  card.className = `patient-card ${isExpanded ? "is-expanded" : ""}`;
+  card.className = `patient-card ${isExpanded ? "is-expanded" : ""} ${allSelected ? "is-selected" : ""}`;
 
   // Cabecera del paciente
   const header = document.createElement("div");
@@ -161,9 +190,27 @@ export function patientGroupRow(key, sessions, callbacks = {}) {
   const titleGroup = document.createElement("div");
   titleGroup.className = "patient-title-group";
 
-  // Fila superior: Nombre + badge sesiones + badge edad
+  // Fila superior: Checkbox + Nombre + badge sesiones + badge edad
   const titleRow = document.createElement("div");
   titleRow.className = "patient-title-row";
+
+  const patientCheckWrap = document.createElement("label");
+  patientCheckWrap.className = "patient-check-wrap";
+  patientCheckWrap.title = "Seleccionar todas las sesiones de este paciente para exportar en grupo";
+  patientCheckWrap.onclick = (e) => e.stopPropagation();
+
+  const patientCheck = document.createElement("input");
+  patientCheck.type = "checkbox";
+  patientCheck.className = "patient-check";
+  patientCheck.checked = allSelected;
+  patientCheck.indeterminate = !allSelected && someSelected;
+  patientCheck.addEventListener("change", (e) => {
+    e.stopPropagation();
+    if (callbacks.onToggleSelectGroup) {
+      callbacks.onToggleSelectGroup(sessions.map((s) => s.id), patientCheck.checked);
+    }
+  });
+  patientCheckWrap.appendChild(patientCheck);
 
   const nameEl = document.createElement("h3");
   nameEl.textContent = latest.nombre || "Sin nombre";
@@ -172,7 +219,7 @@ export function patientGroupRow(key, sessions, callbacks = {}) {
   sessBadge.className = "patient-badge";
   sessBadge.textContent = sessions.length === 1 ? "1 sesión" : `${sessions.length} sesiones`;
 
-  titleRow.append(nameEl, sessBadge);
+  titleRow.append(patientCheckWrap, nameEl, sessBadge);
 
   const calcAge = latest.edad || ageOn(latest.nacimiento, latest.fechaSesion);
   if (calcAge) {
@@ -248,9 +295,19 @@ export function patientGroupRow(key, sessions, callbacks = {}) {
   });
   controls.append(printGroup);
 
-
-
-  // Comparar (si tiene >= 2 sesiones)
+  // Exportar JSON (Paciente o sesión)
+  const exportPatientBtn = document.createElement("button");
+  exportPatientBtn.type = "button";
+  exportPatientBtn.className = "btn light";
+  exportPatientBtn.textContent = isMulti ? "JSON (todas)" : "JSON";
+  exportPatientBtn.title = isMulti
+    ? `Descargar las ${sessions.length} sesiones de ${latest.nombre || "este paciente"} en un archivo JSON`
+    : `Descargar la ficha de ${latest.nombre || "este paciente"} en un archivo JSON`;
+  exportPatientBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (callbacks.onExportPatient) callbacks.onExportPatient(latest.nombre || "paciente", sessions);
+  });
+  controls.append(exportPatientBtn);
   if (sessions.length >= 2 && callbacks.onCompare) {
     const comp = document.createElement("button");
     comp.type = "button";
@@ -300,7 +357,7 @@ export function patientGroupRow(key, sessions, callbacks = {}) {
   // Si tiene 1 sesión -> abre la ficha directamente
   // Si tiene > 1 sesión -> alterna el acordeón
   header.addEventListener("click", (event) => {
-    if (event.target.closest("button")) return;
+    if (event.target.closest("button") || event.target.closest("label") || event.target.closest("input")) return;
     if (!isMulti) {
       if (callbacks.onOpen) callbacks.onOpen(latest);
     } else {

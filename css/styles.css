@@ -278,3 +278,39 @@
   align-items: center;
   gap: 8px;
 }
+
+/* Opciones del Asistente de Exportación */
+.export-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.export-option-card {
+  display: block;
+  padding: 12px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  margin-bottom: 0 !important;
+}
+
+.export-option-card:hover {
+  background: var(--sky);
+  border-color: var(--primary);
+}
+
+.export-option-card:has(input[type="radio"]:checked) {
+  border-color: var(--primary);
+  background: #f0f7ff;
+}
+
+.export-option-card input[type="radio"] {
+  accent-color: var(--primary);
+  width: 17px;
+  height: 17px;
+  cursor: pointer;
+  margin-top: 3px;
+}
