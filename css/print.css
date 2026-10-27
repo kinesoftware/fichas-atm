@@ -1,0 +1,513 @@
+/**
+ * Fichas ATM - Estilos de Impresión y Exportación a PDF
+ * Diseñado para formato A4: fichas individuales, lotes e informe de evolución comparativa.
+ */
+
+#print-root {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 20mm 24mm;
+  }
+
+  body {
+    background: #fff;
+    margin: 0;
+    padding: 0;
+  }
+  body::before,
+  body::after {
+    display: none;
+  }
+  .topbar,
+  main,
+  .app-dialog {
+    display: none !important;
+  }
+  #print-root {
+    display: block;
+    margin: 0;
+    padding: 0;
+  }
+
+  .print-sheet {
+    break-after: page;
+    page-break-after: always;
+    box-sizing: border-box;
+    /* El margen vive en @page para que la página 2 y las siguientes también lo tengan */
+    width: auto;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+    color: #1e293b;
+    font-family: "Roboto", sans-serif;
+    font-size: 8.5pt;
+    line-height: 1.3;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .print-sheet:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .pf-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin: 0 0 12px;
+    padding: 0 2px 12px;
+    border-bottom: 1.5px solid #d0e1ed;
+  }
+  .pf-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .pf-head img {
+    width: 136px;
+    height: 36px;
+    object-fit: contain;
+    object-position: left center;
+  }
+  .pf-kicker,
+  .pf-k {
+    margin: 0;
+    font-size: 7pt;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #5a6e85;
+    font-weight: 700;
+  }
+  .pf-titles h1 {
+    margin: 0;
+    font-size: 13pt;
+    line-height: 1.15;
+    color: #0f172a;
+    font-weight: 700;
+  }
+  .pf-sub {
+    margin: 2px 0 0;
+    color: #2563eb;
+    font-size: 8.5pt;
+    font-weight: 500;
+  }
+  .pf-session {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: #f0f6fa;
+    border: 1px solid #b8d5e8;
+    border-radius: 10px;
+    padding: 9px 18px 10px;
+    min-width: 150px;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .pf-session-badge {
+    display: block;
+    background: #2563eb;
+    color: #ffffff !important;
+    font-size: 7.5pt !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 2.5px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+    line-height: 1.2;
+    margin: 0;
+    box-shadow: 0 1px 2px rgba(0, 95, 153, 0.15);
+  }
+  .pf-session-label {
+    display: block;
+    margin: 0;
+    font-size: 7pt;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #5a6e85;
+    font-weight: 700;
+    white-space: nowrap;
+    line-height: 1.1;
+  }
+  .pf-session-date,
+  .pf-session strong {
+    display: block;
+    margin: 0;
+    font-size: 11pt;
+    letter-spacing: -0.01em;
+    text-transform: none;
+    color: #2563eb;
+    font-weight: 700;
+    white-space: nowrap;
+    line-height: 1.2;
+  }
+
+  .pf-head,
+  .pf-who,
+  .pf-section,
+  .pf-foot {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .pf-who,
+  .pf-section {
+    background: #f8fafc;
+    border: 1px solid #d8e5ee;
+    border-radius: 8px;
+    padding: 12px 14px 14px;
+    margin: 0 0 12px;
+  }
+  .pf-name {
+    margin: 0 0 9px;
+    font-size: 12pt;
+    line-height: 1.2;
+    color: #0f172a;
+    letter-spacing: 0;
+    text-transform: none;
+    font-weight: 700;
+  }
+
+  /* Formato compacto para sesiones de seguimiento en PDF multi-sesión */
+  .pf-sheet-followup {
+    padding-top: 0;
+  }
+  .pf-head-followup {
+    margin: 0 0 6px;
+    padding-bottom: 6px;
+  }
+  .pf-who-followup {
+    background: #f0f6fa;
+    border: 1px solid #c5dcee;
+    border-radius: 7px;
+    padding: 5px 10px;
+    margin: 0 0 6px;
+  }
+  .pf-followup-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .pf-followup-identity {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .pf-name-compact {
+    margin: 0;
+    font-size: 11pt;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+  }
+  .pf-followup-doc {
+    font-size: 8.5pt;
+    color: #4b5563;
+    font-weight: 600;
+  }
+  .pf-followup-note {
+    font-size: 7.5pt;
+    color: #2563eb;
+    font-style: italic;
+    font-weight: 500;
+  }
+  .pf-followup-evo {
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 1px dashed #e2e8f0;
+  }
+  .pf-followup-evo p {
+    margin: 2px 0 0;
+    font-size: 8.5pt;
+    color: #111827;
+    white-space: pre-wrap;
+    line-height: 1.35;
+  }
+  .pf-section > h2 {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0 0 9px;
+    font-size: 9.5pt;
+    letter-spacing: 0;
+    text-transform: none;
+    font-weight: 700;
+    color: #0f2d59;
+  }
+  .pf-section > h2::before {
+    content: "";
+    width: 3.5px;
+    height: 12px;
+    border-radius: 2px;
+    background: #0d9488;
+  }
+
+  .pf-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px 12px;
+  }
+  .pf-field {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    background: #ffffff;
+    border: 1px solid #e2ecf3;
+    border-radius: 6px;
+    padding: 6px 10px;
+    min-height: 38px;
+    box-sizing: border-box;
+  }
+  .pf-v {
+    color: #0f172a;
+    font-size: 8.5pt;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+  .pf-prose {
+    margin-top: 8px;
+    background: #ffffff;
+    border: 1px solid #e2ecf3;
+    border-radius: 6px;
+    padding: 7px 10px;
+  }
+  .pf-prose p {
+    margin: 1.5px 0 0;
+    white-space: pre-wrap;
+    line-height: 1.3;
+    font-size: 8.5pt;
+    color: #1e293b;
+  }
+  .pf-notes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .pf-notes .pf-prose {
+    margin-top: 0;
+  }
+
+  .pf-eva {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 8px;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid #e2ecf3;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+  }
+  .pf-eva-track {
+    height: 8px;
+    border-radius: 99px;
+    background: #e2eef5;
+    overflow: hidden;
+  }
+  .pf-eva-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: #0d9488;
+  }
+  .pf-eva-fill.pf-eva-zero {
+    background: #94a3b8;
+  }
+  .pf-eva-fill.pf-eva-mild {
+    background: #10b981;
+  }
+  .pf-eva-fill.pf-eva-moderate {
+    background: #f59e0b;
+  }
+  .pf-eva-fill.pf-eva-severe {
+    background: #ef4444;
+  }
+  .pf-eva-score {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .pf-eva-score strong {
+    color: #0f172a;
+    font-size: 11pt;
+    font-weight: 700;
+  }
+  .pf-eva-tag {
+    font-size: 7.5pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #5a6e85;
+  }
+
+  .pf-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 6px;
+  }
+  .pf-chip {
+    background: #f0f7fc;
+    border: 1px solid #b8d7eb;
+    color: #004b7a;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 2.5px 8px;
+    font-size: 7.5pt;
+    line-height: 1.25;
+  }
+  .pf-empty {
+    font-size: 8pt;
+    font-style: italic;
+    color: #64748b;
+  }
+  .pf-signature {
+    margin-top: 14px;
+    margin-bottom: 4px;
+    margin-left: auto;
+    width: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .pf-sig-image {
+    max-height: 58px;
+    max-width: 180px;
+    object-fit: contain;
+    margin-bottom: -3px;
+  }
+  .pf-sig-image.pf-sig-missing {
+    display: none;
+  }
+  .pf-sig-stamp {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+  }
+  .pf-sig-rule {
+    display: block;
+    width: 150px;
+    height: 1px;
+    background: #64748b;
+    margin-bottom: 3px;
+  }
+  .pf-sig-name {
+    font-size: 9.5pt;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .pf-sig-title,
+  .pf-sig-mat {
+    font-size: 7.5pt;
+    color: #4b5563;
+  }
+
+  .pf-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 12px;
+    padding: 8px 2px 0;
+    border-top: 1px solid #d8e5ee;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .pf-foot span {
+    font-size: 7pt;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #64748b;
+    font-weight: 600;
+  }
+
+  /* Comparativa en hoja impresa */
+  .pf-compare-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .pf-compare-kpi {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 6px 10px;
+    text-align: center;
+  }
+  .pf-compare-kpi span {
+    display: block;
+    font-size: 7.5pt;
+    text-transform: uppercase;
+    color: #4b5563;
+    font-weight: 700;
+  }
+  .pf-compare-kpi strong {
+    display: block;
+    font-size: 11pt;
+    color: #0f172a;
+    margin-top: 2px;
+  }
+  .pf-compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 6px;
+    font-size: 8.5pt;
+  }
+  .pf-compare-table th,
+  .pf-compare-table td {
+    padding: 4px 6px;
+    border-bottom: 1px solid #e5eef4;
+    text-align: left;
+    vertical-align: middle;
+  }
+  .pf-compare-table th {
+    background: #e8f2f6;
+    color: #2563eb;
+    font-weight: 700;
+    font-size: 8pt;
+  }
+  .pf-compare-table tr.is-changed {
+    background: #f0fdf4;
+    font-weight: 500;
+  }
+
+  .pf-foto-box {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px dashed #cbd5e1;
+  }
+  .pf-foto-box .pf-subhead {
+    display: block;
+    font-size: 8pt;
+    font-weight: 700;
+    color: #0f2d59;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .pf-attached-photos-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .pf-attached-photo {
+    max-width: 100%;
+    max-height: 180px;
+    object-fit: contain;
+    border-radius: 4px;
+    border: 1px solid #cbd5e1;
+    display: block;
+  }
+}

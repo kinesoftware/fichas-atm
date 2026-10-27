@@ -1,0 +1,17 @@
+{
+  "name": "Fichas ATM · Historia Clínica Digital",
+  "short_name": "Fichas ATM",
+  "description": "Historia clínica digital y seguimiento temporomandibular según criterios CDI-TTM.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#10b981",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,682 @@
+/**
+ * Fichas ATM - Biblioteca de Fichas y Pacientes
+ * Estilos para listado general, agrupación por paciente, búsqueda y paginación.
+ */
+
+.hero-card,
+.sheet,
+.card-row {
+  background: white;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 24px 8px 24px 8px;
+  box-shadow: var(--shadow);
+}
+
+.hero-card {
+  display: flex;
+  gap: 28px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 32px;
+}
+
+.hero-copy {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  max-width: 620px;
+}
+
+.hero-copy p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+  font-size: 15px;
+}
+
+.hero-copy code {
+  color: var(--navy);
+}
+
+.doc-icon {
+  flex: 0 0 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--pill);
+  border: 2px solid var(--accent);
+}
+
+.hero-actions,
+.sheet-tools,
+.library-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 22px 4px 14px;
+  color: var(--navy);
+}
+
+.lt-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.lt-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.lt-label,
+.lt-sort-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.library-toolbar select,
+.library-toolbar input[type="search"] {
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 14px;
+  background-color: white;
+  color: var(--ink);
+  font: inherit;
+}
+
+.library-toolbar select {
+  padding-right: 42px;
+}
+
+.library-toolbar select.page-size {
+  width: auto;
+}
+
+.lt-row-controls {
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.lt-chip {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: white;
+  color: var(--primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.lt-chip::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  vertical-align: 0;
+}
+
+.lt-chip:hover {
+  border-color: var(--primary);
+}
+
+.lt-chip.is-active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.lt-chip.is-active::before {
+  background: white;
+  border-color: white;
+}
+
+.lt-sort {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  color: var(--muted);
+}
+
+.lt-sort select {
+  width: auto;
+  min-width: 180px;
+  padding: 8px 40px 8px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.library-toolbar.is-idle {
+  opacity: 0.45;
+}
+
+.library-toolbar.is-idle select,
+.library-toolbar.is-idle input,
+.library-toolbar.is-idle .lt-chip {
+  background: #eef1f4;
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+.lt-chip:disabled {
+  pointer-events: none;
+}
+
+.library-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 28px 0 8px;
+  color: var(--navy);
+  font-weight: 600;
+}
+
+.library-loading::before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  border: 2px solid #d5deea;
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: library-spin 0.7s linear infinite;
+}
+
+@keyframes library-spin {
+  to { transform: rotate(360deg); }
+}
+
+.empty-none {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--navy);
+  padding: 28px 8px 12px;
+}
+
+.card-row {
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  border-radius: 12px;
+}
+
+.card-row h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  color: var(--navy);
+}
+
+.card-row p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.card-row .btn.ghost {
+  color: var(--primary);
+}
+
+.btn-icon-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 8px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.btn-icon-del:hover {
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.08);
+}
+
+.btn-icon-del-text:hover {
+  color: #dc2626;
+}
+
+.row-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: center;
+}
+
+.library-pager {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 4px 0;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.library-pager button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.library-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Tarjeta de Paciente y Acordeón de Sesiones */
+.patient-card {
+  background: white;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.patient-card:hover {
+  border-color: #a5c2d6;
+}
+
+.patient-card.is-expanded {
+  border-color: var(--accent);
+  box-shadow: 0 4px 20px rgba(0, 95, 153, 0.12);
+}
+
+.patient-header {
+  padding: 14px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  background: white;
+  transition: background 0.12s ease;
+}
+
+.patient-header:hover {
+  background: #f8fbfe;
+}
+
+.patient-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.patient-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.patient-title-row h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--navy);
+  letter-spacing: -0.2px;
+}
+
+.patient-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--pill);
+  color: var(--navy);
+  border: 1px solid #d0e4ee;
+  letter-spacing: 0.1px;
+}
+
+.patient-badge.age {
+  background: #f0fdf4;
+  color: #166534;
+  border-color: #bbf7d0;
+}
+
+.patient-meta {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.patient-meta-dot {
+  opacity: 0.45;
+  font-weight: bold;
+}
+
+.patient-sessions {
+  border-top: 1px solid var(--line);
+  background: #f4f8fb;
+  padding: 10px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.session-row {
+  background: white;
+  border: 1px solid #dbe6ee;
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+}
+
+.session-row:hover {
+  border-color: #a5c2d6;
+  background: #fafcfe;
+  box-shadow: 0 2px 8px rgba(0, 40, 70, 0.05);
+}
+
+.session-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.session-num {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.session-date {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.session-prof {
+  font-size: 12px;
+  color: #334155;
+  padding: 2px 7px;
+  background: #e2e8f0;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.session-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.session-chip {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: #e8f2f6;
+  color: #1e3a5f;
+}
+
+.session-chip.eva-green {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.session-chip.eva-yellow {
+  background: #fef9c3;
+  color: #854d0e;
+  border: 1px solid #fef08a;
+}
+
+.session-chip.eva-red {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.session-chip.session-chip-notes {
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px dashed #cbd5e1;
+  font-weight: 500;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.session-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.session-actions .btn {
+  font-size: 12px;
+  padding: 5px 10px;
+}
+
+@media (max-width: 800px) {
+  .hero-card {
+    display: grid;
+    grid-template-columns: 1fr;
+    padding: 16px 14px;
+    gap: 16px;
+    border-radius: 16px;
+  }
+
+  .hero-copy {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .doc-icon {
+    display: none;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .hero-actions .btn,
+  .hero-actions .file-btn {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    box-sizing: border-box;
+  }
+
+  .library-toolbar {
+    margin: 16px 0 12px;
+  }
+
+  .lt-row-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .lt-sort {
+    margin-left: 0;
+    justify-content: space-between;
+  }
+
+  .lt-sort select {
+    flex: 1;
+  }
+
+  .library-toolbar .btn {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .card-row,
+  .patient-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+  }
+
+  .session-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .session-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .row-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .row-controls .btn {
+    font-size: 13px;
+    padding: 6px 12px;
+  }
+
+  .library-pager {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+}
+
+/* Acción principal de la biblioteca: "Nueva sesión" destacada, el resto discreto */
+.btn-primary-cta {
+  font-size: 17px;
+  font-weight: 700;
+  padding: 14px 32px;
+}
+
+.hero-secondary {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.hero-link {
+  background: none;
+  border: 0;
+  padding: 4px 2px;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.hero-link:hover,
+.hero-link:focus-visible {
+  color: var(--primary);
+}
+
+/* Micro animación de atención tras el login: entrada + 3 pulsos con halo */
+@keyframes cta-pop {
+  0% { transform: translateY(6px) scale(0.96); opacity: 0; }
+  60% { transform: translateY(0) scale(1.04); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes cta-halo {
+  0% { box-shadow: 0 0 0 0 rgba(46, 191, 165, 0.6); }
+  100% { box-shadow: 0 0 0 16px rgba(46, 191, 165, 0); }
+}
+
+.btn-primary-cta.cta-attention {
+  animation: cta-pop 0.5s ease-out both, cta-halo 1.2s ease-out 0.5s 3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary-cta.cta-attention {
+    animation: none;
+  }
+}
+
+.hero-copy .hero-title {
+  margin: 0;
+  align-self: center;
+  color: var(--navy);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+@media (max-width: 640px) {
+  .hero-copy .hero-title {
+    font-size: 22px;
+  }
+}
+
+/* Escritorio: tipografía y espacios un punto más generosos */
+@media (min-width: 801px) {
+  .hero-card {
+    padding: 34px 40px;
+    gap: 36px;
+  }
+
+  .hero-copy .hero-title {
+    font-size: 30px;
+  }
+
+  .hero-actions {
+    gap: 14px;
+  }
+
+  .btn-primary-cta {
+    font-size: 18px;
+    padding: 16px 36px;
+  }
+
+  .hero-secondary {
+    font-size: 14px;
+    gap: 10px;
+  }
+}
